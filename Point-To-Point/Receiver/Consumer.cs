@@ -10,7 +10,10 @@ namespace Sender
             using (var channel = new PointToPointChannel("hello-p2p"))
             {
                 var message = channel.Receive();
-                Console.WriteLine("Received message {0}", message);
+                if (message != null)
+                    Console.WriteLine("Received message {0}", message);
+                else
+                   Console.WriteLine("Did not receive message"); 
             }
 
             Console.WriteLine(" Press [enter] to exit.");

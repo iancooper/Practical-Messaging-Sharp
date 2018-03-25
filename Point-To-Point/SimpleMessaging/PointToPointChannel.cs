@@ -8,6 +8,7 @@ namespace SimpleMessaging
     {
         private const string QueueName = "pm-p2p-text";
         private const string ExchangeName = "practical-messaging";
+        private const string RoutingKey = "pm.p2p.hello";
         private readonly IConnection _connection;
         private readonly IModel _channel;
 
@@ -20,12 +21,13 @@ namespace SimpleMessaging
             _channel = _connection.CreateModel();
             _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: false);
             _channel.QueueDeclare(queue: QueueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
+            _channel.QueueBind(queue:QueueName, exchange: ExchangeName, routingKey: RoutingKey);
         }
 
         public void Send(string message)
         {
             var body = Encoding.UTF8.GetBytes(message);
-            _channel.BasicPublish(exchange: ExchangeName, routingKey: QueueName, basicProperties: null, body: body);
+            _channel.BasicPublish(exchange: ExchangeName, routingKey: RoutingKey, basicProperties: null, body: body);
         }
 
         public string Receive()

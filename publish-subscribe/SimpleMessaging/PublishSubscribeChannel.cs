@@ -13,6 +13,7 @@ namespace SimpleMessaging
     
     public class PublishSubscribeChannel : IDisposable
     {
+        private readonly ChannelType _channelType;
         private const string ALL = "";
         private const string ExchangeName = "practical-messaging";
         private readonly IConnection _connection;
@@ -31,11 +32,13 @@ namespace SimpleMessaging
         /// We are disposable so that we can be used within a using statement; connections
         /// are unmanaged resources and we want to remember to close them.
         /// We are following an RAI pattern here: Resource Acquisition is Initialization
+        /// We could implement seperate interfaces for publish and subscribe but we are keeping this demo code simple
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="hostName"></param>
         public PublishSubscribeChannel(ChannelType channelType, string hostName = "localhost")
         {
+            _channelType = channelType;
             //just use defaults: usr: guest pwd: guest port:5672 virtual host: /
             var factory = new ConnectionFactory() { HostName = hostName };
             factory.AutomaticRecoveryEnabled = true;
@@ -60,6 +63,9 @@ namespace SimpleMessaging
         /// <param name="message"></param>
         public void Send(string message)
         {
+            if (_channelType != ChannelType.Publisher)
+                throw new InvalidOperationException("You cannot send from a consumer");
+            
             var body = Encoding.UTF8.GetBytes(message);
             _channel.BasicPublish(exchange: ExchangeName, routingKey:ALL, basicProperties: null, body: body);
         }
@@ -74,6 +80,9 @@ namespace SimpleMessaging
         /// <returns></returns>
         public string Receive()
         {
+            if (_channelType != ChannelType.Subscriber)
+                throw new InvalidOperationException("You cannot receive on a publisher");
+            
             var result = _channel.BasicGet(_queueName, autoAck: true);
             if (result != null)
                 return Encoding.UTF8.GetString(result.Body);

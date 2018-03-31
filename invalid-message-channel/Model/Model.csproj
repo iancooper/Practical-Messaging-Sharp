@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleMessaging\SimpleMessaging.csproj">
+      <Project>{A584491E-5218-463F-AC02-4DA6A932CB16}</Project>
+      <Name>SimpleMessaging</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

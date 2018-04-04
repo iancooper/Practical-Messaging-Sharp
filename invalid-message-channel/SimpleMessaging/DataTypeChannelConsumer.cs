@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 
 namespace SimpleMessaging
@@ -47,7 +48,7 @@ namespace SimpleMessaging
              /* We choose to base the key off the type name, because we want tp publish to folks interested in this type
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
              this type of message */
-            _routingKey = nameof(T);
+            _routingKey = "Invalid-Message-Channel." + typeof(T).FullName;
             _queueName = _routingKey;
 
             var invalidRoutingKey = "invalid." + _routingKey;
@@ -57,7 +58,7 @@ namespace SimpleMessaging
             var arguments = new Dictionary<string, object>()
             {
                 {"x-dead-letter-exchange", InvalidMessageExchangeName},
-                {"x-dead-letter-routing-key", "invalid." + _routingKey}
+                {"x-dead-letter-routing-key", invalidRoutingKey}
             };
             _channel.QueueDeclare(queue: _queueName, durable: false, exclusive: false, autoDelete: false, arguments: arguments);
             _channel.QueueBind(queue:_queueName, exchange: ExchangeName, routingKey: _routingKey);
@@ -86,8 +87,9 @@ namespace SimpleMessaging
                     _channel.BasicAck(deliveryTag:result.DeliveryTag, multiple: false);
                     return message;
                 }
-                catch (Exception fe)
+                catch (JsonSerializationException e)
                 {
+                    Console.WriteLine($"Error processing the incoming message {e}");
                     //put format errors onto the invalid message queue
                     _channel.BasicNack(deliveryTag:result.DeliveryTag, multiple: false, requeue:false);
                 }

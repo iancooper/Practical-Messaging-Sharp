@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Model;
 using Newtonsoft.Json;
 using SimpleMessaging;
@@ -9,24 +11,52 @@ namespace Sender
     {
         static void Main(string[] args)
         {
-            /* We want to force an error on a missing property - you probably don't want this approach in production
-             code as it prevents versioning, but it helps demo invalid messages by creating an error*/
-            using (var channel = new DataTypeChannelConsumer<Greeting>(
-                messageBody => JsonConvert.DeserializeObject<Greeting>(messageBody, new JsonSerializerSettings
+            var consumer = new PollingConsumer<Greeting>(new GreetingHandler(), 
+                    messageBody => JsonConvert.DeserializeObject<Greeting>(messageBody, new JsonSerializerSettings
+                    {
+                        MissingMemberHandling = MissingMemberHandling.Error
+                    })
+                );
+
+            var tokenSource = new CancellationTokenSource();
+
+            try
+            {
+                Console.WriteLine("Consumer running, entering loop until signalled");
+                Console.WriteLine(" Press [enter] to exit.");
+                //has its own thread and will continue until signalled
+                var task = consumer.Run(tokenSource.Token);
+                while (true)
                 {
-                    MissingMemberHandling = MissingMemberHandling.Error
-                }))
-            )
-                {
-                var greeting = channel.Receive();
-                if (greeting != null)
-                    Console.WriteLine("Received message {0}", greeting.Salutation);
-                else
-                   Console.WriteLine("Did not receive message"); 
+                    //loop until we get a keyboard interrupt
+                    if (Console.KeyAvailable)
+                    {
+                        //Note: This will deadlock with Console.WriteLine on the task thread unless we have called Writeline firsst
+                        var key = Console.ReadKey();
+                        if (key.Key == ConsoleKey.Enter)
+                        {
+                            //signal exit
+                            tokenSource.Cancel();
+                            //wait for thread to error
+                            task.Wait();
+                            //in theory we don't get here, because we raise an exception on cancellation, but just in case
+                            break;
+                        }
+
+                        Task.Delay(3000);  // yield
+                    }
+                }
+            }
+            catch (AggregateException ae)
+            {
+                foreach (var v in ae.InnerExceptions)
+                    Console.WriteLine(ae.Message + " " + v.Message);
+            }
+            finally
+            {
+                tokenSource.Dispose();
             }
 
-            Console.WriteLine(" Press [enter] to exit.");
-            Console.ReadLine();
         }
     }
 }

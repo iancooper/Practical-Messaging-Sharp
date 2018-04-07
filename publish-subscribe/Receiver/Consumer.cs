@@ -11,10 +11,8 @@ namespace Sender
             using (var channel = new PublishSubscribeChannel(channelType: ChannelType.Subscriber))
             {
                 Console.WriteLine("Waiting for message...");
-                int loop = 0;
                 while (true)
                 {
-                    loop++;
                     if (Console.KeyAvailable)
                     {
                         var key = Console.ReadKey();

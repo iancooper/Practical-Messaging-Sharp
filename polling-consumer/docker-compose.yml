@@ -1,0 +1,23 @@
+version: '3'
+
+# RMQ uses a mensia database for a message box whose directory depends on hostname; unless we set an alias on the network to create
+# a hostname for our container, we won't get the database stored in the same folder on the volume across restarts, so we won't get 
+# persistent messages surviving restarts
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitlocalhost
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: on-failure
+    volumes:
+      - rabbitmq-home:/var/lib/rabbitmq
+    restart: on-failure
+
+volumes:
+  rabbitmq-home:
+    driver: local
+    
+

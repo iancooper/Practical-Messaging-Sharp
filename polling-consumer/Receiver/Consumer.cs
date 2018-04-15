@@ -31,7 +31,7 @@ namespace Sender
                     //loop until we get a keyboard interrupt
                     if (Console.KeyAvailable)
                     {
-                        //Note: This will deadlock with Console.WriteLine on the task thread unless we have called Writeline firsst
+                        //Note: This will deadlock with Console.WriteLine on the task thread unless we have called Writeline first
                         var key = Console.ReadKey();
                         if (key.Key == ConsoleKey.Enter)
                         {

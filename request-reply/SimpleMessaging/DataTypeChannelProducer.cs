@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 
 namespace SimpleMessaging
 {
-    public class DataTypeChannelProducer<T> : IDisposable where T: IAmAMessage 
+    public class DataTypeChannelProducer<T, TResponse> : IDisposable where T: IAmAMessage where TResponse: class, IAmAResponse
     {
         private readonly Func<T, string> _messageSerializer;
+        private readonly Func<string, TResponse> _messageDeserializer;
         private string _routingKey;
         private const string ExchangeName = "practical-messaging-imq";
         private const string InvalidMessageExchangeName = "practical-messaging-invalid";
@@ -29,10 +32,15 @@ namespace SimpleMessaging
         /// We are following an RAI pattern here: Resource Acquisition is Initialization
         /// </summary>
         /// <param name="messageSerializer">Needs to take a message of type T and convert to a string</param>
+        /// <param name="messageDeserializer">Needs to take an on the wire message body and convert to TResponse</param>
         /// <param name="hostName">localhost if not otherwise specified</param>
-        public DataTypeChannelProducer(Func<T, string> messageSerializer, string hostName = "localhost")
+        public DataTypeChannelProducer(
+            Func<T, string> messageSerializer, 
+            Func<string, TResponse> messageDeserializer,
+            string hostName = "localhost")
         {
             _messageSerializer = messageSerializer;
+            _messageDeserializer = messageDeserializer;
             //just use defaults: usr: guest pwd: guest port:5672 virtual host: /
             var factory = new ConnectionFactory() { HostName = hostName };
             factory.AutomaticRecoveryEnabled = true;
@@ -66,23 +74,67 @@ namespace SimpleMessaging
             _channel.QueueDeclare(queue: invalidMessageQueueName, durable: true, exclusive: false, autoDelete: false);
             _channel.QueueBind(queue:invalidMessageQueueName, exchange:InvalidMessageExchangeName, routingKey:invalidRoutingKey);
             
-            //declare a queue for replies, we can auto-delete this as it should die with us
-            _channel.QueueDeclare() 
-    }
+   }
 
         /// <summary>
-        /// Send a message over the channel
-        /// Uses the shared routing key to ensure the sender and receiver match up
+        /// Call another process and wait for the response. This blocks, as it has function call semantics
+        /// We make two choices (a) a queue per call. This has overhead but makes correlation of message
+        /// between call and response trivial. On a queue per client, we would need to correlate responses to
+        /// ensure we handled out-of-order messages (might be enough to drop ones we don't recognize) (b) we block
+        /// awaiting the response as that is an RPC semantic, over allowing a seperate consumer to receive responses
+        /// and handle them via a handler. That alternative uses routing keys over queues to work and is less true RPC
+        /// than request-reply
         /// </summary>
-        /// <param name="message"></param>
-        public void Send(T message)
+        /// <param name="message">The message to send</param>
+        /// <param name="timeoutInMilliseconds">The time to wait for the response</param>
+        public TResponse Call(T message, int timeoutInMilliseconds)
         {
-            var body = Encoding.UTF8.GetBytes(_messageSerializer(message));
+            //declare a queue for replies, we can auto-delete this as it should die with us
+            //auto-generate a queue name; we don't need a routing key as we just send/receive from this queue
+            var queueResult =_channel.QueueDeclare(durable: false, exclusive: true, autoDelete: true, arguments: null);
+            var queueName = queueResult.QueueName;
+            _channel.QueueBind(queue:queueName, exchange: ExchangeName, routingKey:"");
+            
+             var body = Encoding.UTF8.GetBytes(_messageSerializer(message));
             //In order to do guaranteed delivery, we want to use the broker's message store to hold the message, 
             //so that it will be available even if the broker restarts
             var props = _channel.CreateBasicProperties();
             props.DeliveryMode = 2; //persistent
+            props.ReplyTo = queueName; //tell it the queue that accepts replies
             _channel.BasicPublish(exchange: ExchangeName, routingKey: _routingKey, basicProperties: props, body: body);
+            
+            //now we want to listen
+            TResponse response = null;
+            DateTime timeoutDate = DateTime.UtcNow + TimeSpan.FromMilliseconds(timeoutInMilliseconds);
+            while (DateTime.UtcNow <= timeoutDate)
+            {
+                var result = _channel.BasicGet(queue: queueName, autoAck: false);
+                if (result != null)
+                {
+                    try
+                    {
+                        response = _messageDeserializer(Encoding.UTF8.GetString(result.Body));
+                        _channel.BasicAck(deliveryTag: result.DeliveryTag, multiple: false);
+                    }
+                    catch (JsonSerializationException e)
+                    {
+                        Console.WriteLine($"Error processing the incoming message {e}");
+                        //remove from the queue
+                        _channel.BasicAck(deliveryTag: result.DeliveryTag, multiple: false);
+                    }
+                }
+                else
+                {
+                    // yield, but not for too long
+                    Task.Delay(TimeSpan.FromMilliseconds(Math.Round((double)timeoutInMilliseconds / 5)));
+                }
+            }
+            
+            // we will create a new queue next time around
+            _channel.QueueDeleteNoWait(queueName);
+            
+ 
+            return response;
         }
 
         public void Dispose()

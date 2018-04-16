@@ -1,7 +1,15 @@
-﻿namespace SimpleMessaging
+﻿using System;
+
+namespace SimpleMessaging
 {
     public interface IAmAMessage
     {
-       string ReplyTo { get; set; } 
+        Guid CorrelationId { get; set; }
+        string ReplyTo { get; set; } 
+    }
+
+    public interface IAmAResponse
+    {
+        Guid CorrelationId { get; set; }
     }
 }

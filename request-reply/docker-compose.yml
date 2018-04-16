@@ -4,6 +4,7 @@ version: '3'
 # a hostname for our container, we won't get the database stored in the same folder on the volume across restarts, so we won't get 
 # persistent messages surviving restarts
 
+
 services:
   rabbitmq:
     image: rabbitmq:3-management

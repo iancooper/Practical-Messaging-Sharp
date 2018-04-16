@@ -25,6 +25,7 @@ namespace Sender
                    Console.WriteLine("Did not receive message"); 
             }
 
+            
             Console.WriteLine(" Press [enter] to exit.");
             Console.ReadLine();
         }

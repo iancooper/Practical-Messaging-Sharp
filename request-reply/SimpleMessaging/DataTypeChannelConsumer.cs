@@ -74,6 +74,7 @@ namespace SimpleMessaging
             _channel.QueueBind(queue:invalidMessageQueueName, exchange:InvalidMessageExchangeName, routingKey:invalidRoutingKey);
 
         }
+        
 
         /// <summary>
         /// Receive a message from the queue

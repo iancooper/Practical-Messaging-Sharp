@@ -28,7 +28,7 @@ namespace SimpleMessaging
                         {
                             var message = channel.Receive();
                             _messageHandler.Handle(message);
-                            Task.Delay(1000, ct); //yield
+                            Task.Delay(1000, ct).Wait(ct); //yield
                             ct.ThrowIfCancellationRequested();
                         }
                     }

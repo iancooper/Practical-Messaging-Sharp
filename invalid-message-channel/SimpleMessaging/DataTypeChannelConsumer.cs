@@ -8,9 +8,8 @@ namespace SimpleMessaging
 {
     public class DataTypeChannelConsumer<T> : IDisposable where T: IAmAMessage
     {
-        private readonly Func<string, T> _messageSerializer;
-        private string _routingKey;
-        private string _queueName;
+        private readonly Func<string, T> _messageDeserializer;
+        private readonly string _queueName;
         private const string ExchangeName = "practical-messaging-imq";
         private const string InvalidMessageExchangeName = "practical-messaging-invalid";
         private readonly IConnection _connection;
@@ -33,11 +32,11 @@ namespace SimpleMessaging
         /// But the principle works, create an exchange for 'invalid' messages and route
         /// failed to send to application code messages to it
         /// </summary>
-        /// <param name="messageSerializer">Takes the message body and turns it into an instance of type T</param>
+        /// <param name="messageDeserializer">Takes the message body and turns it into an instance of type T</param>
         /// <param name="hostName"></param>
-        public DataTypeChannelConsumer(Func<string, T> messageSerializer, string hostName = "localhost")
+        public DataTypeChannelConsumer(Func<string, T> messageDeserializer, string hostName = "localhost")
         {
-            _messageSerializer = messageSerializer;
+            _messageDeserializer = messageDeserializer;
             //just use defaults: usr: guest pwd: guest port:5672 virtual host: /
             var factory = new ConnectionFactory() { HostName = hostName };
             factory.AutomaticRecoveryEnabled = true;
@@ -48,10 +47,10 @@ namespace SimpleMessaging
              /* We choose to base the key off the type name, because we want tp publish to folks interested in this type
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
              this type of message */
-            _routingKey = "Invalid-Message-Channel." + typeof(T).FullName;
-            _queueName = _routingKey;
+            var routingKey = "Invalid-Message-Channel." + typeof(T).FullName;
+            _queueName = routingKey;
 
-            var invalidRoutingKey = "invalid." + _routingKey;
+            var invalidRoutingKey = "invalid." + routingKey;
             var invalidMessageQueueName = invalidRoutingKey;
             
             _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: false);
@@ -61,7 +60,7 @@ namespace SimpleMessaging
                 {"x-dead-letter-routing-key", invalidRoutingKey}
             };
             _channel.QueueDeclare(queue: _queueName, durable: false, exclusive: false, autoDelete: false, arguments: arguments);
-            _channel.QueueBind(queue:_queueName, exchange: ExchangeName, routingKey: _routingKey);
+            _channel.QueueBind(queue:_queueName, exchange: ExchangeName, routingKey: routingKey);
             
             //declare a queue for invalid messages off an invalid message exchange
             //messages that we nack without requeue will go here
@@ -83,7 +82,7 @@ namespace SimpleMessaging
             if (result != null)
                 try
                 {
-                    T message = _messageSerializer(Encoding.UTF8.GetString(result.Body));
+                    T message = _messageDeserializer(Encoding.UTF8.GetString(result.Body));
                     _channel.BasicAck(deliveryTag:result.DeliveryTag, multiple: false);
                     return message;
                 }

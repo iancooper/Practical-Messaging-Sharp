@@ -7,11 +7,11 @@ using RabbitMQ.Client;
 
 namespace SimpleMessaging
 {
-    public class DataTypeChannelProducer<T, TResponse> : IDisposable where T: IAmAMessage where TResponse: class, IAmAResponse
+    public class RequestReplyChannelProducer<T, TResponse> : IDisposable where T: IAmAMessage where TResponse: class, IAmAResponse
     {
         private readonly Func<T, string> _messageSerializer;
         private readonly Func<string, TResponse> _messageDeserializer;
-        private string _routingKey;
+        private readonly string _routingKey;
         private const string ExchangeName = "practical-messaging-imq";
         private const string InvalidMessageExchangeName = "practical-messaging-invalid";
         private readonly IConnection _connection;
@@ -34,7 +34,7 @@ namespace SimpleMessaging
         /// <param name="messageSerializer">Needs to take a message of type T and convert to a string</param>
         /// <param name="messageDeserializer">Needs to take an on the wire message body and convert to TResponse</param>
         /// <param name="hostName">localhost if not otherwise specified</param>
-        public DataTypeChannelProducer(
+        public RequestReplyChannelProducer(
             Func<T, string> messageSerializer, 
             Func<string, TResponse> messageDeserializer,
             string hostName = "localhost")
@@ -91,9 +91,11 @@ namespace SimpleMessaging
         {
             //declare a queue for replies, we can auto-delete this as it should die with us
             //auto-generate a queue name; we don't need a routing key as we just send/receive from this queue
+            //Note that we do not need bind to the default exchange; any queue declared on the default exchange
+            //automatically has a routing key that is the queue name. Because we choose a random
+            //queue name this means we avoid any collisions
             var queueResult =_channel.QueueDeclare(durable: false, exclusive: true, autoDelete: true, arguments: null);
             var queueName = queueResult.QueueName;
-            _channel.QueueBind(queue:queueName, exchange: ExchangeName, routingKey:"");
             
              var body = Encoding.UTF8.GetBytes(_messageSerializer(message));
             //In order to do guaranteed delivery, we want to use the broker's message store to hold the message, 
@@ -143,7 +145,7 @@ namespace SimpleMessaging
             GC.SuppressFinalize(this);
         }
 
-        ~DataTypeChannelProducer()
+        ~RequestReplyChannelProducer()
         {
             ReleaseUnmanagedResources();
         }

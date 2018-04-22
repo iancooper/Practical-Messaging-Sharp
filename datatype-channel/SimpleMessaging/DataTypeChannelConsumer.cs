@@ -6,9 +6,8 @@ namespace SimpleMessaging
 {
     public class DataTypeChannelConsumer<T> : IDisposable where T: IAmAMessage
     {
-        private readonly Func<string, T> _messageSerializer;
-        private string _routingKey;
-        private string _queueName;
+        private readonly Func<string, T> _messageDeserializer;
+        private readonly string _queueName;
         private const string ExchangeName = "practical-messaging";
         private readonly IConnection _connection;
         private readonly IModel _channel;
@@ -25,11 +24,11 @@ namespace SimpleMessaging
         /// are unmanaged resources and we want to remember to close them.
         /// We are following an RAI pattern here: Resource Acquisition is Initialization
         /// </summary>
-        /// <param name="messageSerializer">Takes the message body and turns it into an instance of type T</param>
+        /// <param name="messageDeserializer">Takes the message body and turns it into an instance of type T</param>
         /// <param name="hostName"></param>
-        public DataTypeChannelConsumer(Func<string, T> messageSerializer, string hostName = "localhost")
+        public DataTypeChannelConsumer(Func<string, T> messageDeserializer, string hostName = "localhost")
         {
-            _messageSerializer = messageSerializer;
+            _messageDeserializer = messageDeserializer;
             //just use defaults: usr: guest pwd: guest port:5672 virtual host: /
             var factory = new ConnectionFactory() { HostName = hostName };
             factory.AutomaticRecoveryEnabled = true;
@@ -39,12 +38,12 @@ namespace SimpleMessaging
              /* We choose to base the key off the type name, because we want tp publish to folks interested in this type
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
              this type of message */
-            _routingKey = nameof(T);
-            _queueName = _routingKey;
+            var routingKey = nameof(T);
+            _queueName = routingKey;
             
             _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: false);
             _channel.QueueDeclare(queue: _queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
-            _channel.QueueBind(queue:_queueName, exchange: ExchangeName, routingKey: _routingKey);
+            _channel.QueueBind(queue:_queueName, exchange: ExchangeName, routingKey: routingKey);
         }
 
         /// <summary>
@@ -57,7 +56,7 @@ namespace SimpleMessaging
         {
             var result = _channel.BasicGet(_queueName, autoAck: true);
             if (result != null)
-                return _messageSerializer(Encoding.UTF8.GetString(result.Body));
+                return _messageDeserializer(Encoding.UTF8.GetString(result.Body));
             else
                 return default(T) ;
         }   

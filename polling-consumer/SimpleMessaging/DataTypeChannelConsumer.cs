@@ -8,7 +8,7 @@ namespace SimpleMessaging
 {
     public class DataTypeChannelConsumer<T> : IDisposable where T: IAmAMessage
     {
-        private readonly Func<string, T> _messageSerializer;
+        private readonly Func<string, T> _messageDeserializer;
         private string _routingKey;
         private string _queueName;
         private const string ExchangeName = "practical-messaging-guaranteed";
@@ -33,11 +33,11 @@ namespace SimpleMessaging
         /// But the principle works, create an exchange for 'invalid' messages and route
         /// failed to send to application code messages to it
         /// </summary>
-        /// <param name="messageSerializer">Takes the message body and turns it into an instance of type T</param>
+        /// <param name="messageDeserializer">Takes the message body and turns it into an instance of type T</param>
         /// <param name="hostName"></param>
-        public DataTypeChannelConsumer(Func<string, T> messageSerializer, string hostName = "localhost")
+        public DataTypeChannelConsumer(Func<string, T> messageDeserializer, string hostName = "localhost")
         {
-            _messageSerializer = messageSerializer;
+            _messageDeserializer = messageDeserializer;
             //just use defaults: usr: guest pwd: guest port:5672 virtual host: /
             var factory = new ConnectionFactory() { HostName = hostName };
             factory.AutomaticRecoveryEnabled = true;
@@ -87,7 +87,7 @@ namespace SimpleMessaging
             if (result != null)
                 try
                 {
-                    T message = _messageSerializer(Encoding.UTF8.GetString(result.Body));
+                    T message = _messageDeserializer(Encoding.UTF8.GetString(result.Body));
                     _channel.BasicAck(deliveryTag:result.DeliveryTag, multiple: false);
                     return message;
                 }

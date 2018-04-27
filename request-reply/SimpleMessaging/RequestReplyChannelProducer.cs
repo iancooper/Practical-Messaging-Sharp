@@ -78,9 +78,9 @@ namespace SimpleMessaging
 
         /// <summary>
         /// Call another process and wait for the response. This blocks, as it has function call semantics
-        /// We make two choices (a) a queue per call. This has overhead but makes correlation of message
-        /// between call and response trivial. On a queue per client, we would need to correlate responses to
-        /// ensure we handled out-of-order messages (might be enough to drop ones we don't recognize) (b) we block
+        /// We make two choices: (a) a queue per call. This has overhead but makes correlation of message
+        /// between call and response trivial; (b) a queue per client, we would need to correlate responses to
+        /// ensure we handled out-of-order messages (might be enough to drop ones we don't recognize). We block
         /// awaiting the response as that is an RPC semantic, over allowing a seperate consumer to receive responses
         /// and handle them via a handler. That alternative uses routing keys over queues to work and is less true RPC
         /// than request-reply
@@ -124,6 +124,8 @@ namespace SimpleMessaging
                         //remove from the queue
                         _channel.BasicAck(deliveryTag: result.DeliveryTag, multiple: false);
                     }
+
+                    break;
                 }
                 else
                 {

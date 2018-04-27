@@ -43,7 +43,7 @@ namespace SimpleMessaging
                                     _messageSerializer 
                                     );
                                
-                                responder.Respond( request.ReplyTo, response);
+                                responder.Respond(request.ReplyTo, response);
                             }
                             else
                                Console.WriteLine("Did not receive message"); 

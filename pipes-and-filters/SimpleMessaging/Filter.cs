@@ -44,12 +44,18 @@ namespace SimpleMessaging
                         while (true)
                         {
                             var inMessage = inPipe.Receive();
-                            TOut outMessage =_operation.Execute(inMessage);
-                            using (var outPipe = new DataTypeChannelProducer<TOut>(_messasgeSerializer, _hostName))
+                            if (inMessage != null)
                             {
-                                outPipe.Send(outMessage);
+                                TOut outMessage = _operation.Execute(inMessage);
+                                using (var outPipe = new DataTypeChannelProducer<TOut>(_messasgeSerializer, _hostName))
+                                {
+                                    outPipe.Send(outMessage);
+                                }
                             }
-                            Task.Delay(1000, ct).Wait(ct); //yield
+                            else
+                            {
+                                Task.Delay(1000, ct).Wait(ct); //yield
+                            }
                             ct.ThrowIfCancellationRequested();
                         }
                     }

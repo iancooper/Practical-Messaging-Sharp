@@ -8,7 +8,7 @@ namespace SimpleMessaging
     public class BadDataTypeChannelProducer<TActual, TIntended> : IDisposable where TActual: IAmAMessage where TIntended: IAmAMessage
     {
         private readonly Func<TActual, string> _messageSerializer;
-        private string _routingKey;
+        private readonly string _routingKey;
         private const string ExchangeName = "practical-messaging-imq";
         private const string InvalidMessageExchangeName = "practical-messaging-invalid";
         private readonly IConnection _connection;

@@ -15,7 +15,7 @@ namespace SimpleMessaging
     {
         private readonly ChannelType _channelType;
         private const string ALL = "";
-        private const string ExchangeName = "practical-messaging";
+        private const string ExchangeName = "practical-messaging-pubsub";
         private readonly IConnection _connection;
         private readonly IModel _channel;
         private readonly string _queueName;

@@ -9,9 +9,8 @@ namespace SimpleMessaging
     public class DataTypeChannelConsumer<T> : IDisposable where T: IAmAMessage
     {
         private readonly Func<string, T> _messageDeserializer;
-        private string _routingKey;
-        private string _queueName;
-        private const string ExchangeName = "practical-messaging-guaranteed";
+        private readonly string _queueName;
+        private const string ExchangeName = "practical-messaging-polling";
         private const string InvalidMessageExchangeName = "practical-messaging-invalid";
         private readonly IConnection _connection;
         private readonly IModel _channel;
@@ -48,10 +47,10 @@ namespace SimpleMessaging
              /* We choose to base the key off the type name, because we want tp publish to folks interested in this type
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
              this type of message */
-            _routingKey = "Polling-Consumer." + typeof(T).FullName;
-            _queueName = _routingKey;
+            var routingKey = "Polling-Consumer." + typeof(T).FullName;
+            _queueName = routingKey;
 
-            var invalidRoutingKey = "invalid." + _routingKey;
+            var invalidRoutingKey = "invalid." + routingKey;
             var invalidMessageQueueName = invalidRoutingKey;
             
             //Make the exhange durable, so that we can keep our messages/queues between restarts
@@ -65,7 +64,7 @@ namespace SimpleMessaging
             //if we are going to have persistent messages, it mostly makes sense to have a durable queue, to survive
             //restarts, or client failures
             _channel.QueueDeclare(queue: _queueName, durable: true, exclusive: false, autoDelete: false, arguments: arguments);
-            _channel.QueueBind(queue: _queueName, exchange: ExchangeName, routingKey: _routingKey);
+            _channel.QueueBind(queue: _queueName, exchange: ExchangeName, routingKey: routingKey);
             
             //declare a queue for invalid messages off an invalid message exchange
             //messages that we nack without requeue will go here

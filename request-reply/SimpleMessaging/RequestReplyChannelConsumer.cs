@@ -10,7 +10,7 @@ namespace SimpleMessaging
     {
         private readonly Func<string, T> _messageDeserializer;
         private readonly string _queueName;
-        private const string ExchangeName = "practical-messaging-guaranteed";
+        private const string ExchangeName = "practical-messaging-request-reply";
         private const string InvalidMessageExchangeName = "practical-messaging-invalid";
         private readonly IConnection _connection;
         private readonly IModel _channel;

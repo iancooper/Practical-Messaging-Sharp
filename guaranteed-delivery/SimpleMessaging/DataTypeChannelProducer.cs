@@ -8,8 +8,8 @@ namespace SimpleMessaging
     public class DataTypeChannelProducer<T> : IDisposable where T: IAmAMessage 
     {
         private readonly Func<T, string> _messageSerializer;
-        private string _routingKey;
-        private const string ExchangeName = "practical-messaging-imq";
+        private readonly string _routingKey;
+        private const string ExchangeName = "practical-messaging-guaranteed";
         private const string InvalidMessageExchangeName = "practical-messaging-invalid";
         private readonly IConnection _connection;
         private readonly IModel _channel;
@@ -48,7 +48,7 @@ namespace SimpleMessaging
             var invalidRoutingKey = "invalid." + _routingKey;
             var invalidMessageQueueName = invalidRoutingKey;
             
-            _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: false);
+            _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: true);
             var arguments = new Dictionary<string, object>()
             {
                 {"x-dead-letter-exchange", InvalidMessageExchangeName},

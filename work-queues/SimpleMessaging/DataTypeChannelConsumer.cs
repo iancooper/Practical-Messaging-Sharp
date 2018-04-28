@@ -48,7 +48,7 @@ namespace SimpleMessaging
              /* We choose to base the key off the type name, because we want tp publish to folks interested in this type
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
              this type of message */
-            _routingKey = "Polling-Consumer." + typeof(T).FullName;
+            _routingKey = "Work-Queue." + typeof(T).FullName;
             _queueName = _routingKey;
 
             var invalidRoutingKey = "invalid." + _routingKey;
@@ -72,6 +72,8 @@ namespace SimpleMessaging
             _channel.ExchangeDeclare(InvalidMessageExchangeName, ExchangeType.Direct, durable: true);
             _channel.QueueDeclare(queue: invalidMessageQueueName, durable: true, exclusive: false, autoDelete: false);
             _channel.QueueBind(queue:invalidMessageQueueName, exchange:InvalidMessageExchangeName, routingKey:invalidRoutingKey);
+            
+            _channel.BasicQos(prefetchSize:0, prefetchCount:1, global:false);
 
         }
 

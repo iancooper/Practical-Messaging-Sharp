@@ -49,8 +49,8 @@ namespace SimpleMessaging
             
              /* We choose to base the key off the type name, because we want tp publish to folks interested in this type
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
-             this type of message */
-            _routingKey = "Invalid-Message-Channel." + typeof(T).FullName;
+             eRequesthis type of message */
+            _routingKey = "Request-Reply." + typeof(T).FullName;
             var queueName = _routingKey;
 
             var invalidRoutingKey = "invalid." + _routingKey;

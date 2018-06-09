@@ -38,10 +38,10 @@ namespace SimpleMessaging
             _routingKey = queueName;
             _queueName = queueName;
             
-            _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: false);
-            _channel.QueueDeclare(queue: _queueName, durable: false, exclusive: false, autoDelete: false, arguments: null);
-            _channel.QueueBind(queue:_queueName, exchange: ExchangeName, routingKey: _routingKey);
-        }
+            //TODO: declare a non-durable direct exchange via the channel
+            //TODO: declare a non-durable queue. non-exc;usive, that does not auto-delete. Use _queuename
+            //TODO: bind _queuename to _routingKey on the exchange
+       }
 
         /// <summary>
         /// Send a message over the channel
@@ -52,7 +52,7 @@ namespace SimpleMessaging
         public void Send(string message)
         {
             var body = Encoding.UTF8.GetBytes(message);
-            _channel.BasicPublish(exchange: ExchangeName, routingKey: _routingKey, basicProperties: null, body: body);
+            //TODO: Publish on the exchange using the routing key
         }
 
         /// <summary>
@@ -63,10 +63,11 @@ namespace SimpleMessaging
         /// <returns></returns>
         public string Receive()
         {
-            var result = _channel.BasicGet(_queueName, autoAck: true);
-            if (result != null)
-                return Encoding.UTF8.GetString(result.Body);
-            else
+            //TODO: Use basic get to read a message, don't auto acknowledge the message
+            //var result = 
+            //if (result != null)
+            //    return Encoding.UTF8.GetString(result.Body);
+            //else
                 return null;
         }   
 

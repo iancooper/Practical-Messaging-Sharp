@@ -77,8 +77,7 @@ namespace SimpleMessaging
             var body = Encoding.UTF8.GetBytes(_messageSerializer(message));
             //In order to do guaranteed delivery, we want to use the broker's message store to hold the message, 
             //so that it will be available even if the broker restarts
-            var props = _channel.CreateBasicProperties();
-            props.DeliveryMode = 2; //persistent
+            // TODO: Set the basic properties to ensure that we have persistent messages
             _channel.BasicPublish(exchange: ExchangeName, routingKey: _routingKey, basicProperties: props, body: body);
         }
 

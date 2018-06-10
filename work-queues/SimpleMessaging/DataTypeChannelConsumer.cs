@@ -73,6 +73,7 @@ namespace SimpleMessaging
             _channel.QueueDeclare(queue: invalidMessageQueueName, durable: true, exclusive: false, autoDelete: false);
             _channel.QueueBind(queue:invalidMessageQueueName, exchange:InvalidMessageExchangeName, routingKey:invalidRoutingKey);
             
+            //TODO: We only want to fetch one message at a time in a competing consumer model
             _channel.BasicQos(prefetchSize:0, prefetchCount:1, global:false);
 
         }

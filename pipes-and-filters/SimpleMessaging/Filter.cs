@@ -39,27 +39,23 @@ namespace SimpleMessaging
             var task = Task.Factory.StartNew(() =>
                 {
                     ct.ThrowIfCancellationRequested();
-                    using (var inPipe = new DataTypeChannelConsumer<TIn>(_messageDeserializer, _hostName))
-                    {
-                        while (true)
-                        {
-                            var inMessage = inPipe.Receive();
-                            if (inMessage != null)
-                            {
-                                TOut outMessage = _operation.Execute(inMessage);
-                                using (var outPipe = new DataTypeChannelProducer<TOut>(_messasgeSerializer, _hostName))
-                                {
-                                    outPipe.Send(outMessage);
-                                }
-                            }
-                            else
-                            {
-                                Task.Delay(1000, ct).Wait(ct); //yield
-                            }
-                            ct.ThrowIfCancellationRequested();
-                        }
-                    }
-                }, ct
+                    
+                    /*TODO
+                     *
+                     * Create an in pipe from a DataTypeChannelConsumer
+                     * while true
+                     *     read from the inpipe
+                     *     if we get a message
+                     *         use the operation to transform the message
+                     *         create a DataTypeChannelProducer for the out pipe
+                     *             Send the message on the outpipe
+                     *         dispose of the producer
+                     *     else
+                     *         delay by 1ms
+                     *     check for a cancelled token
+                     * displose of the consumer
+                     */
+               }, ct
             );
             return task;
         }

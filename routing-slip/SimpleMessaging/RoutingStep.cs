@@ -44,29 +44,30 @@ namespace SimpleMessaging
             var task = Task.Factory.StartNew(() =>
                 {
                     ct.ThrowIfCancellationRequested();
+                    
+                   
+                    
                     using (var inPipe = new DataTypeChannelConsumer<T>(_thisRoutingKey, _messageDeserializer, _hostName))
                     {
                         while (true)
                         {
-                            var inMessage = inPipe.Receive();
-                            if (inMessage != null)
-                            {
-                                T outMessage = _operation.Execute(inMessage);
-                                inMessage.Steps[inMessage.CurrentStep].Completed = true;
-                                
-                                int nextStepNo = inMessage.CurrentStep + 1;
-                                if (inMessage.Steps.ContainsKey(nextStepNo))
-                                {
-                                    var nextStep = inMessage.Steps[nextStepNo];
-                                    var outRoutingStep = nextStep.RoutingKey;
-                                    
-                                    outMessage.CurrentStep = nextStepNo;
-                                    using (var outPipe = new DataTypeChannelProducer<T>(outRoutingStep, _messasgeSerializer, _hostName))
-                                    {
-                                        outPipe.Send(outMessage);
-                                    }
-                                }
-                            }
+                            /* TODO
+                             * receive a message from the in pipe
+                             * if we get non-null message
+                             *     execute the operation on it to get the out message
+                             *     complete the step on te in message
+                             *     increment the step counter
+                             *     if there is a step for the next step counter
+                             *         retrieve the routing key from the next step
+                             *         set the next step on the outgoing message
+                             *         create an outpipe DataTypeChannelProducer
+                             *             send the message
+                             *         dispose of the producer
+                             *     else
+                             *         yield for a second
+                             * 
+                             * 
+                             */
                             else
                             {
                                 Task.Delay(1000, ct).Wait(ct); //yield

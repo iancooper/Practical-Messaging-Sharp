@@ -33,21 +33,15 @@ namespace SimpleMessaging
                     {
                         while (true)
                         {
-                            var request = channel.Receive();
-                            if ( request != null)
-                            {
-
-                                var response = _messageHandler.Handle(request);
-                                
-                                var responder = new RequestReplyChannelResponder<TResponse>(
-                                    _messageSerializer 
-                                    );
-                               
-                                responder.Respond(request.ReplyTo, response);
-                            }
-                            else
-                               Console.WriteLine("Did not receive message"); 
-                                        
+                            /*
+                             * TODO: receive a request on the channel
+                             * if the request is not null then
+                             *     handle the message
+                             *     create a RequestReplyChannelResponder
+                             *     respond to the request, with the response from the handler
+                             */
+                            
+                            
                             Task.Delay(1000, ct).Wait(ct); //yield
                             ct.ThrowIfCancellationRequested();
                         }

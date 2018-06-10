@@ -94,52 +94,33 @@ namespace SimpleMessaging
             //Note that we do not need bind to the default exchange; any queue declared on the default exchange
             //automatically has a routing key that is the queue name. Because we choose a random
             //queue name this means we avoid any collisions
-            var queueResult =_channel.QueueDeclare(durable: false, exclusive: true, autoDelete: true, arguments: null);
-            var queueName = queueResult.QueueName;
             
-             var body = Encoding.UTF8.GetBytes(_messageSerializer(message));
+            // TODO: Declare a queue for replies, non-durable, exclusive, auto-deleting. no queue name
+            // TODO: Assign auto generated queuename to variable for later use
+            
+            // TODO: serialize the body, and turn it into a byte[] with URF8 encoding
             //In order to do guaranteed delivery, we want to use the broker's message store to hold the message, 
             //so that it will be available even if the broker restarts
-            var props = _channel.CreateBasicProperties();
-            props.DeliveryMode = 2; //persistent
-            props.ReplyTo = queueName; //tell it the queue that accepts replies
-            _channel.BasicPublish(exchange: ExchangeName, routingKey: _routingKey, basicProperties: props, body: body);
+            // TODO: Create basic properties for the channel
+            // TODO: Make the message persistent
+            // TODO: Set reply to on the props to the random queue name from above
+            // TODO: Publish to the consumer on ExchangeName with _routingKey and props and body
             
             //now we want to listen
-            TResponse response = null;
-            DateTime timeoutDate = DateTime.UtcNow + TimeSpan.FromMilliseconds(timeoutInMilliseconds);
-            while (DateTime.UtcNow <= timeoutDate)
-            {
-                var result = _channel.BasicGet(queue: queueName, autoAck: false);
-                if (result != null)
-                {
-                    try
-                    {
-                        response = _messageDeserializer(Encoding.UTF8.GetString(result.Body));
-                        _channel.BasicAck(deliveryTag: result.DeliveryTag, multiple: false);
-                    }
-                    catch (JsonSerializationException e)
-                    {
-                        Console.WriteLine($"Error processing the incoming message {e}");
-                        //remove from the queue
-                        _channel.BasicAck(deliveryTag: result.DeliveryTag, multiple: false);
-                    }
-
-                    break;
-                }
-                else
-                {
-                    // yield, but not for too long
-                    Task.Delay(TimeSpan.FromMilliseconds(Math.Round((double)timeoutInMilliseconds / 5)));
-                }
-            }
-            
-            // we will create a new queue next time around
-            _channel.QueueDeleteNoWait(queueName);
-            
- 
-            return response;
-        }
+            /*
+             * TODO
+             * whilst a time the timeout period is not up
+             *     read from the reply queue
+             *     if we have a message
+             *         serialize the message (hint: convert UTF8 byte array to string
+             *         ack the message
+             *         break
+             *     else
+             *         yield briefy, but not too long as we have a timeout
+             * delete the reply queue when done
+             * return the response
+             */
+       }
 
         public void Dispose()
         {

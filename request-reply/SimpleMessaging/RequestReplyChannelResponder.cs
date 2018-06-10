@@ -35,12 +35,16 @@ namespace SimpleMessaging
                 Console.WriteLine("Responding on queue {0} to message with correlation id {1}", 
                     replyQueuename, response.CorrelationId.ToString());
                 
-                var replyBasicProperties = _channel.CreateBasicProperties();
-                replyBasicProperties.CorrelationId = response.CorrelationId.ToString();
-                byte[] responseBytes = Encoding.UTF8.GetBytes(_messageSerializer(response));
-                //Because this is the default exchange, the routing key is the queue name
-                _channel.BasicPublish("", replyQueuename, replyBasicProperties, responseBytes);
                 
+                /*
+                 * TODO: crate basic properites via the channel
+                 * Set the correlation id
+                 * serialize the message
+                 * Turn it into UTF8
+                 * Publish th othe default exchange hint: "" where routing key = queue name
+                 * 
+                 */
+               
                 Console.WriteLine("Responded on queue {0} at {1}", replyQueuename, DateTime.UtcNow);
      
             }

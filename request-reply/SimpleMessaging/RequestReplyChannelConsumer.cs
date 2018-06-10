@@ -87,11 +87,16 @@ namespace SimpleMessaging
             if (result != null)
                 try
                 {
-                    T message = _messageDeserializer(Encoding.UTF8.GetString(result.Body));
-                    _channel.BasicAck(deliveryTag:result.DeliveryTag, multiple: false);
-                    message.ReplyTo = result.BasicProperties.ReplyTo;
-                    Console.WriteLine("Reply requested to queue {0}", message.ReplyTo);
-                    return message;
+                    /*
+                     * TODO
+                     * deserialize the message
+                     * Ackknowledge the message (use the delivery tag)
+                     * set the reply to property of the message, from the result properties
+                     * return the message
+                     */
+                    
+                   //T message =
+                   return message;
                 }
                 catch (JsonSerializationException e)
                 {

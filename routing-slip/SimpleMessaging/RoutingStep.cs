@@ -52,7 +52,7 @@ namespace SimpleMessaging
                             if (inMessage != null)
                             {
                                 T outMessage = _operation.Execute(inMessage);
-                                inMessage.Steps[inMessage.CurrentStep].Completed = true;
+                                outMessage.Steps[inMessage.CurrentStep].Completed = true;
                                 
                                 int nextStepNo = inMessage.CurrentStep + 1;
                                 if (inMessage.Steps.ContainsKey(nextStepNo))

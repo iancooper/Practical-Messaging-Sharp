@@ -38,7 +38,7 @@ namespace SimpleMessaging
              /* We choose to base the key off the type name, because we want tp publish to folks interested in this type
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
              this type of message */
-            var routingKey = typeof(T);
+            var routingKey = typeof(T).FullName;
             _queueName = routingKey;
             
             _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: false);

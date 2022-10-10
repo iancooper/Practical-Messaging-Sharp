@@ -42,8 +42,10 @@ namespace Sender
                    loop++;
                     
                    if (loop % 10 == 0)
+                   {
                        Console.WriteLine("Pause for breath");
                        Task.Delay(3000).Wait(); // yield
+                   }
                 }
             }
         }

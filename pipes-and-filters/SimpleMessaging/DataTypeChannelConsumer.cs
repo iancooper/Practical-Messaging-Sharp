@@ -19,7 +19,7 @@ namespace SimpleMessaging
         /// Create a new channel for sending point-to-point messages
         /// Under RMQ we:
         ///     1. Create a socket connection to the broker
-        //      2. Create a channel on that socket
+        ///     2. Create a channel on that socket
         ///     3. Create a direct exchange on the server for point-to-point messaging 
         ///     4. Create a queue to hold messages
         ///     5. Bind the queue to listen to a routing key on that exchange
@@ -53,7 +53,7 @@ namespace SimpleMessaging
             var invalidRoutingKey = "invalid." + routingKey;
             var invalidMessageQueueName = invalidRoutingKey;
             
-            //Make the exhange durable, so that we can keep our messages/queues between restarts
+            //Make the exchange durable, so that we can keep our messages/queues between restarts
             _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: true);
             var arguments = new Dictionary<string, object>()
             {

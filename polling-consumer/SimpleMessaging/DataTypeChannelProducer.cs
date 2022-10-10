@@ -22,7 +22,7 @@ namespace SimpleMessaging
         ///     3. Create a direct exchange on the server for point-to-point messaging
         /// We don't create the receiving queue - each consumer does that, and will route to our
         /// key.
-        /// We have split producer and consumer, as they need seperate serialization/de-serialization of the message
+        /// We have split producer and consumer, as they need separate serialization/de-serialization of the message
         /// We are disposable so that we can be used within a using statement; connections
         /// are unmanaged resources and we want to remember to close them.
         /// We inject the serializer to use with this type, so we can read and write the type to the body

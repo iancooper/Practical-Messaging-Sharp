@@ -32,7 +32,7 @@ namespace SimpleMessaging
         /// We are disposable so that we can be used within a using statement; connections
         /// are unmanaged resources and we want to remember to close them.
         /// We are following an RAI pattern here: Resource Acquisition is Initialization
-        /// We could implement seperate interfaces for publish and subscribe but we are keeping this demo code simple
+        /// We could implement separate interfaces for publish and subscribe but we are keeping this demo code simple
         /// </summary>
         /// <param name="queueName"></param>
         /// <param name="hostName"></param>

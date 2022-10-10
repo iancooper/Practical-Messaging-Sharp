@@ -8,14 +8,14 @@ namespace SimpleMessaging
     {
         private readonly IAmAnOperation<TIn, TOut> _operation;
         private readonly Func<string, TIn> _messageDeserializer;
-        private readonly Func<TOut, string> _messasgeSerializer;
+        private readonly Func<TOut, string> _messageSerializer;
         private readonly string _hostName;
 
         public Filter(IAmAnOperation<TIn, TOut> operation, Func<string, TIn> messageDeserializer, Func<TOut, string> messasgeSerializer, string hostName = "localhost")
         {
             _operation = operation;
             _messageDeserializer = messageDeserializer;
-            _messasgeSerializer = messasgeSerializer;
+            _messageSerializer = messasgeSerializer;
             _hostName = hostName;
         }
        
@@ -23,7 +23,7 @@ namespace SimpleMessaging
         /// In essence a filter step takes an input channel, reads the message, performs an operation on it, and then sends it to an output channel
         /// It is worth noting that the filter should read one message, process, then re-post to be considered pipes-and-filters over
         /// batch processing. Within pipes and filters we can therefore use competing consumers to speed the operation by parallelizing a step.
-        /// If ordering is important we may need to use scatter-gather to re-asseble the order
+        /// If ordering is important we may need to use scatter-gather to re-assemble the order
         /// Note that we don't just use the PollingConsumer as this is a DataSink i.e. it does not pass messages any further (for information
         /// the producer step is the Data Source).
         /// In theory we could add many filter steps of this form. The key to making this work is routing. By using a datatype channel with

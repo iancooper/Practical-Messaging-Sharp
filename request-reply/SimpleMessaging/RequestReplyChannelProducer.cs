@@ -25,7 +25,7 @@ namespace SimpleMessaging
         ///     3. Create a direct exchange on the server for point-to-point messaging
         /// We don't create the receiving queue - each consumer does that, and will route to our
         /// key.
-        /// We have split producer and consumer, as they need seperate serialization/de-serialization of the message
+        /// We have split producer and consumer, as they need separate serialization/de-serialization of the message
         /// We are disposable so that we can be used within a using statement; connections
         /// are unmanaged resources and we want to remember to close them.
         /// We inject the serializer to use with this type, so we can read and write the type to the body
@@ -81,7 +81,7 @@ namespace SimpleMessaging
         /// We make two choices: (a) a queue per call. This has overhead but makes correlation of message
         /// between call and response trivial; (b) a queue per client, we would need to correlate responses to
         /// ensure we handled out-of-order messages (might be enough to drop ones we don't recognize). We block
-        /// awaiting the response as that is an RPC semantic, over allowing a seperate consumer to receive responses
+        /// awaiting the response as that is an RPC semantic, over allowing a separate consumer to receive responses
         /// and handle them via a handler. That alternative uses routing keys over queues to work and is less true RPC
         /// than request-reply
         /// </summary>

@@ -66,7 +66,7 @@ namespace SimpleMessaging
             //TODO: Use basic get to read a message, auto acknowledge the message
             //var result = 
             //if (result != null)
-            //    return Encoding.UTF8.GetString(result.Body);
+            //    return Encoding.UTF8.GetString(result.Body.ToArray());
             //else
                 return null;
         }   

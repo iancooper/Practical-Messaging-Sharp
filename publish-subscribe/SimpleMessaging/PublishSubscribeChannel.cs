@@ -85,7 +85,7 @@ namespace SimpleMessaging
             
             var result = _channel.BasicGet(_queueName, autoAck: true);
             if (result != null)
-                return Encoding.UTF8.GetString(result.Body);
+                return Encoding.UTF8.GetString(result.Body.ToArray());
             else
                 return null;
         }   

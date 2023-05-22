@@ -56,7 +56,7 @@ namespace SimpleMessaging
         {
             var result = _channel.BasicGet(_queueName, autoAck: true);
             if (result != null)
-                return _messageDeserializer(Encoding.UTF8.GetString(result.Body));
+                return _messageDeserializer(Encoding.UTF8.GetString(result.Body.ToArray()));
             else
                 return default(T) ;
         }   

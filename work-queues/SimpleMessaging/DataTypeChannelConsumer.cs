@@ -90,7 +90,7 @@ namespace SimpleMessaging
             if (result != null)
                 try
                 {
-                    T message = _messageDeserializer(Encoding.UTF8.GetString(result.Body));
+                    T message = _messageDeserializer(Encoding.UTF8.GetString(result.Body.ToArray()));
                     _channel.BasicAck(deliveryTag:result.DeliveryTag, multiple: false);
                     return message;
                 }

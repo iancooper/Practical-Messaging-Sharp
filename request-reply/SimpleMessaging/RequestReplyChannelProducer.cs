@@ -115,7 +115,7 @@ namespace SimpleMessaging
                 {
                     try
                     {
-                        response = _messageDeserializer(Encoding.UTF8.GetString(result.Body));
+                        response = _messageDeserializer(Encoding.UTF8.GetString(result.Body.ToArray()));
                         _channel.BasicAck(deliveryTag: result.DeliveryTag, multiple: false);
                     }
                     catch (JsonSerializationException e)

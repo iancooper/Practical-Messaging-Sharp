@@ -14,7 +14,6 @@ services:
       - "15672:15672"
     volumes:
       - rabbitmq-home:/var/lib/rabbitmq
-    restart: on-failure
 
 volumes:
   rabbitmq-home:

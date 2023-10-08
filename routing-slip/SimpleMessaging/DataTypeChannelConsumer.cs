@@ -53,7 +53,7 @@ namespace SimpleMessaging
             var invalidRoutingKey = "invalid." + routingKey;
             var invalidMessageQueueName = invalidRoutingKey;
             
-            //Make the exhange durable, so that we can keep our messages/queues between restarts
+            //Make the exchange durable, so that we can keep our messages/queues between restarts
             _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: true);
             var arguments = new Dictionary<string, object>()
             {

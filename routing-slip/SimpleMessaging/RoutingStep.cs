@@ -10,7 +10,7 @@ namespace SimpleMessaging
         private readonly IAmAnOperation<T> _operation;
         private readonly Func<string, T> _messageDeserializer;
         private readonly string _routingKeyOut;
-        private readonly Func<T, string> _messasgeSerializer;
+        private readonly Func<T, string> _messageSerializer;
         private readonly string _hostName;
 
         public RoutingStep(
@@ -23,7 +23,7 @@ namespace SimpleMessaging
             _thisRoutingKey = thisRoutingKey;
             _operation = operation;
             _messageDeserializer = messageDeserializer;
-            _messasgeSerializer = messasgeSerializer;
+            _messageSerializer = messasgeSerializer;
             _hostName = hostName;
         }
        
@@ -34,7 +34,7 @@ namespace SimpleMessaging
         /// A major difference between routing slip and pipes-and-filters is coupling; in pipes-and-filters we are coupled
         /// to the next component  but in routing slip we don't know what it is.
         /// But, as a result we can't vary the datatype, unlike pipes and filters.
-        /// Up to now we have used the class name of the 'message' to route to a queue. Now though we need to use seperate
+        /// Up to now we have used the class name of the 'message' to route to a queue. Now though we need to use separate
         /// the two as the message and the routing key are not the same.
         /// </summary>
         /// <param name="ct"></param>

@@ -27,4 +27,10 @@ foreach(var bio in biographies)
     );
 }
 
-producer.Flush(TimeSpan.FromSeconds(10));
+int outstandingCount = producer.Flush(TimeSpan.FromSeconds(10));
+while (outstandingCount != 0)
+{
+    //loop until we flush
+    Console.WriteLine($"Still waiting on {outstandingCount} outstanding messages to flush");
+    outstandingCount = producer.Flush(TimeSpan.FromSeconds(10));
+}

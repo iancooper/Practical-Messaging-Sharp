@@ -8,7 +8,7 @@ namespace Model
         public void Handle(EnrichedGreeting message)
         {
             if (message != null)
-                Console.WriteLine(message.Salutation + " " + message.Recipient);
+                Console.WriteLine(message.Salutation + " " + message.Recipient + "" + message.Bio);
         }
     }
 }

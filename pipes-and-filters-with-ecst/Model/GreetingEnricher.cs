@@ -8,7 +8,7 @@ namespace Model
 {
     public class GreetingEnricher : IAmAnOperation<Greeting, EnrichedGreeting>
     {
-        private const string ConnectionString = "server=localhost; port=3306; uid=root; pwd=root; database=Greetings";
+        private const string ConnectionString = "server=localhost; port=3306; uid=root; pwd=root; database=Lookup";
 
         public EnrichedGreeting Execute(Greeting message)
         {
@@ -17,7 +17,7 @@ namespace Model
             var enriched = new EnrichedGreeting();
             enriched.Salutation = message.Salutation;
             
-            enriched.Recipient = "Clarissa Harlowe";
+            enriched.Recipient = "Clarissa Harlow";
             Console.WriteLine($"Enriched with {enriched.Recipient}");
            
             enriched.Bio = LookupBio(enriched.Recipient);
@@ -33,13 +33,12 @@ namespace Model
             connection.Open();
             
             //create a query for the bio
-            string nameToSearch = "John Doe";
-            string biography = GetBiography(connection, nameToSearch);
+            string biography = GetBiography(connection, enrichedRecipient);
 
             if (biography != null)
-                Console.WriteLine($"Biography for {nameToSearch}:\n{biography}");
+                Console.WriteLine($"Biography for {enrichedRecipient}:\n{biography}");
             else
-                Console.WriteLine($"Biography for {nameToSearch} not found.");
+                Console.WriteLine($"Biography for {enrichedRecipient} not found.");
 
             return biography;
         }

@@ -7,7 +7,7 @@ namespace SimpleMessaging
     public class DataTypeChannelProducer<T> : IDisposable where T: IAmAMessage
     {
         private readonly Func<T, string> _messageSerializer;
-        private string _routingKey;
+        private readonly string _routingKey;
         private const string ExchangeName = "practical-messaging";
         private readonly IConnection _connection;
         private readonly IModel _channel;
@@ -49,7 +49,7 @@ namespace SimpleMessaging
         /// Send a message over the channel
         /// Uses the shared routing key to ensure the sender and receiver match up
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">The message that we are sending</param>
         public void Send(T message)
         {
             var body = Encoding.UTF8.GetBytes(_messageSerializer(message));

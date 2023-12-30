@@ -23,14 +23,13 @@ namespace SimpleMessaging
         ///     3. Create a direct exchange on the server for point-to-point messaging 
         ///     4. Create a queue to hold messages
         ///     5. Bind the queue to listen to a routing key on that exchange
-        /// We are disposable so that we can be used within a using statement; connections
-        /// are unmanaged resources and we want to remember to close them.
-        /// We are following an RAI pattern here: Resource Acquisition is Initialization
         /// We support an invalid message queue, for items that we cannot deserialize into the datatype on the channel
-        /// correctly. This
-        /// RMQ gets this wrong, and calls this dead-letter when it is in fact invalid message
-        /// But the principle works, create an exchange for 'invalid' messages and route
-        /// failed to send to application code messages to it
+        /// correctly. RMQ gets this wrong, and calls this dead-letter when it is in fact invalid message
+        /// But the principle works, create an exchange for 'invalid' messages and route failed to send to application
+        /// code messages to it
+        /// We are disposable so that we can be used within a using statement; connections are unmanaged resources and
+        /// we want to remember to close them.
+        /// We are following an RAI pattern here: Resource Acquisition is Initialization
         /// </summary>
         /// <param name="messageDeserializer">Takes the message body and turns it into an instance of type T</param>
         /// <param name="hostName"></param>
@@ -71,8 +70,8 @@ namespace SimpleMessaging
 
         /// <summary>
         /// Receive a message from the queue
-        /// The queue should have received all message published because we create it in the constructor, so the
-        /// producer will create as well as the consumer making the ordering unimportant
+        /// The queue should have received all message published because we create it in both the producer and consumer.
+        /// We can do this in P2P as we are only expecting one consumer to receive the message.
         /// </summary>
         /// <returns></returns>
         public T Receive()

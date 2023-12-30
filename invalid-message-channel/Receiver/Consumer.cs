@@ -17,12 +17,12 @@ namespace Sender
                     MissingMemberHandling = MissingMemberHandling.Error
                 }))
             )
-                {
+            {
                 var greeting = channel.Receive();
                 if (greeting != null)
                     Console.WriteLine("Received message {0}", greeting.Salutation);
                 else
-                   Console.WriteLine("Did not receive message"); 
+                    Console.WriteLine("Did not receive message"); 
             }
 
             Console.WriteLine(" Press [enter] to exit.");

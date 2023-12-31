@@ -62,7 +62,7 @@ namespace SimpleMessaging
             
             //declare a queue for invalid messages off an invalid message exchange
             //messages that we nack without requeue will go here
-           _channel.ExchangeDeclare(InvalidMessageExchangeName, ExchangeType.Direct, durable: true);
+            _channel.ExchangeDeclare(InvalidMessageExchangeName, ExchangeType.Direct, durable: true);
             _channel.QueueDeclare(queue: invalidMessageQueueName, durable: true, exclusive: false, autoDelete: false);
             _channel.QueueBind(queue:invalidMessageQueueName, exchange:InvalidMessageExchangeName, routingKey:invalidRoutingKey);
     }

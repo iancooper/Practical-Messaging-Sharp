@@ -11,10 +11,10 @@ namespace Sender
     {
         static void Main(string[] args)
         {
-            var consumer = new PollingConsumer<EnrichedGreeting>(
+            var consumer = new PollingConsumer<Greeting>(
                     GlobalStepList.Receiver,
                     new GreetingHandler(), 
-                    messageBody => JsonConvert.DeserializeObject<EnrichedGreeting>(messageBody)
+                    messageBody => JsonConvert.DeserializeObject<Greeting>(messageBody)
                 );
 
             var tokenSource = new CancellationTokenSource();

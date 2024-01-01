@@ -16,10 +16,10 @@ namespace Sender
             
  
             using (var channel = new DataTypeChannelProducer<Greeting>(
-                 greeting.Steps[1].RoutingKey,
-                (message) => JsonConvert.SerializeObject(message)
+                       (message) => JsonConvert.SerializeObject(message), 
+                       greeting.Steps[1].RoutingKey
+                       )
                 )
-            )
             {
                 Console.WriteLine(" Press [enter] to exit.");
                 int loop = 0;

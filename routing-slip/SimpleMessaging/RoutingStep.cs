@@ -14,10 +14,10 @@ namespace SimpleMessaging
         private readonly string _hostName;
 
         public RoutingStep(
-            string thisRoutingKey, 
-            IAmAnOperation<T> operation, 
-            Func<string, T> messageDeserializer, 
-            Func<T, string> messasgeSerializer, 
+            Func<string, T> messageDeserializer,
+            Func<T, string> messasgeSerializer,
+            IAmAnOperation<T> operation,
+            string thisRoutingKey,
             string hostName = "localhost")
         {
             _thisRoutingKey = thisRoutingKey;
@@ -44,7 +44,7 @@ namespace SimpleMessaging
             var task = Task.Factory.StartNew(() =>
                 {
                     ct.ThrowIfCancellationRequested();
-                    using (var inPipe = new DataTypeChannelConsumer<T>(_thisRoutingKey, _messageDeserializer, _hostName))
+                    using (var inPipe = new DataTypeChannelConsumer<T>(_messageDeserializer, _thisRoutingKey, _hostName))
                     {
                         while (true)
                         {
@@ -61,7 +61,7 @@ namespace SimpleMessaging
                                     var outRoutingStep = nextStep.RoutingKey;
                                     
                                     outMessage.CurrentStep = nextStepNo;
-                                    using (var outPipe = new DataTypeChannelProducer<T>(outRoutingStep, _messageSerializer, _hostName))
+                                    using (var outPipe = new DataTypeChannelProducer<T>(_messageSerializer, outRoutingStep, _hostName))
                                     {
                                         outPipe.Send(outMessage);
                                     }

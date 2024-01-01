@@ -12,10 +12,10 @@ namespace Sender
         static void Main(string[] args)
         {
             var consumer = new RoutingStep<Greeting>(
-                    GlobalStepList.Enricher,
-                    new GreetingEnricher(), 
-                    greeting => JsonConvert.DeserializeObject<Greeting>(greeting),
-                    (enrichedGreeting) => JsonConvert.SerializeObject(enrichedGreeting)
+                greeting => JsonConvert.DeserializeObject<Greeting>(greeting),
+                (enrichedGreeting) => JsonConvert.SerializeObject(enrichedGreeting), 
+                new GreetingEnricher(), 
+                GlobalStepList.Enricher
                 );
 
             var tokenSource = new CancellationTokenSource();

@@ -28,10 +28,13 @@ namespace SimpleMessaging
         /// We inject the serializer to use with this type, so we can read and write the type to the body
         /// We are following an RAI pattern here: Resource Acquisition is Initialization
         /// </summary>
-        /// <param name="routingKey">The key of the next step in the sequence</param>
         /// <param name="messageSerializer">Needs to take a message of type T and convert to a string</param>
+        /// <param name="routingKey">The key of the next step in the sequence</param>
         /// <param name="hostName">localhost if not otherwise specified</param>
-        public DataTypeChannelProducer(string routingKey, Func<T, string> messageSerializer, string hostName = "localhost")
+        public DataTypeChannelProducer(
+            Func<T, string> messageSerializer, 
+            string routingKey,
+            string hostName = "localhost")
         {
             _messageSerializer = messageSerializer;
             //just use defaults: usr: guest pwd: guest port:5672 virtual host: /

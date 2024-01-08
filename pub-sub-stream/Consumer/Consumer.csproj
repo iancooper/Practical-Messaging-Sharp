@@ -8,6 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MySqlConnector" Version="2.2.7" />
+        <PackageReference Include="Dapper" Version="2.1.4" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\Model\Model.csproj" />
       <ProjectReference Include="..\SimpleEventing\SimpleEventing.csproj" />
     </ItemGroup>

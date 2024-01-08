@@ -104,3 +104,17 @@ services:
                kafka-topics --create --topic second.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
                kafka-topics --create --topic first.messages --partitions 2 --replication-factor 1 --if-not-exists --bootstrap-server kafka0:29092 && \
                kafka-console-producer --bootstrap-server kafka0:29092 --topic second.users < /data/message.json'"
+    
+  mysql:
+      image: mysql
+      ports:
+        - "3306:3306"
+      volumes:
+        - mysql-data:/var/lib/mysql
+      environment:
+        MYSQL_ROOT_PASSWORD: "root"
+        
+volumes:
+  mysql-data:
+    driver: local
+

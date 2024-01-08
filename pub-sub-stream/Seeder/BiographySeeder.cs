@@ -1,3 +1,5 @@
+using Model;
+
 namespace bio_seeder;
 
 public class BiographySeeder : IEnumerable<Biography>

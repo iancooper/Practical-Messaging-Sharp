@@ -28,9 +28,6 @@ namespace SimpleMessaging
         /// We are following an RAI pattern here: Resource Acquisition is Initialization
         /// We support an invalid message queue, for items that we cannot deserialize into the datatype on the channel
         /// correctly. This
-        /// RMQ gets this wrong, and calls this dead-letter when it is in fact invalid message
-        /// But the principle works, create an exchange for 'invalid' messages and route
-        /// failed to send to application code messages to it
         /// </summary>
         /// <param name="messageDeserializer">Takes the message body and turns it into an instance of type T</param>
         /// <param name="hostName"></param>

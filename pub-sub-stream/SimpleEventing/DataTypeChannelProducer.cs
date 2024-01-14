@@ -8,13 +8,13 @@ public class DataTypeChannelProducer<T> : IDisposable where T: IAmAMessage
     private readonly IProducer<string,string> _producer;
     private readonly string _topic;
 
-    public DataTypeChannelProducer(Func<T, string> messageSerializer, string hostName = "localhost")
+    public DataTypeChannelProducer(Func<T, string> messageSerializer, string bootStrapServer = "localhost:9092")
     {
         _messageSerializer = messageSerializer;
         _producer = new ProducerBuilder<string, string>(
             new ProducerConfig
             {
-                BootstrapServers = "localhost:9092",
+                BootstrapServers = bootStrapServer,
             }
             ).Build();
         

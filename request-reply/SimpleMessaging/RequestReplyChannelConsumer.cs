@@ -87,7 +87,7 @@ namespace SimpleMessaging
                     /*
                      * TODO
                      * deserialize the message
-                     * Ackknowledge the message (use the delivery tag)
+                     * Acknowledge the message (use the delivery tag)
                      * set the reply to property of the message, from the result properties
                      * return the message
                      */

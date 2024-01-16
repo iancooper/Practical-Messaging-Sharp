@@ -37,7 +37,7 @@ namespace SimpleMessaging
                 
                 
                 /*
-                 * TODO: crate basic properites via the channel
+                 * TODO: crate basic properties via the channel
                  * Set the correlation id
                  * serialize the message
                  * Turn it into UTF8

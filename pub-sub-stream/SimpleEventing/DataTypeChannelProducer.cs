@@ -11,25 +11,24 @@ public class DataTypeChannelProducer<T> : IDisposable where T: IAmAMessage
     public DataTypeChannelProducer(Func<T, string> messageSerializer, string bootStrapServer = "localhost:9092")
     {
         _messageSerializer = messageSerializer;
-        _producer = new ProducerBuilder<string, string>(
-            new ProducerConfig
-            {
-                BootstrapServers = bootStrapServer,
-            }
-            ).Build();
         
+        //TODO: Create a ProducerConfig file to configure Kafka. You will need to set:
+        // BootstrapServers
+        
+        
+        //TODO: Set the topic to "Pub-Sub-Stream-" + typeof(T).FullName
         _topic = "Pub-Sub-Stream-" + typeof(T).FullName;
     }
     
     public int Flush(TimeSpan fromSeconds)
     {
-        return _producer.Flush(fromSeconds);
+        //TODO: Flush the producer
     }
     
     public void Send(T message)
     {
         var body = _messageSerializer(message);
-        _producer.Produce(_topic, new Message<string, string> { Key = message.Id, Value = body });
+        //TODO: Send the message to Kafka
     }
     
     public void Dispose()

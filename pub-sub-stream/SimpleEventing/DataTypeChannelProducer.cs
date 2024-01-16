@@ -15,6 +15,7 @@ public class DataTypeChannelProducer<T> : IDisposable where T: IAmAMessage
         //TODO: Create a ProducerConfig file to configure Kafka. You will need to set:
         // BootstrapServers
         
+        //Create the Kafka Producer
         
         //TODO: Set the topic to "Pub-Sub-Stream-" + typeof(T).FullName
         _topic = "Pub-Sub-Stream-" + typeof(T).FullName;

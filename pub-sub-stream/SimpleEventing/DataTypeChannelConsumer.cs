@@ -43,13 +43,10 @@ public class DataTypeChannelConsumer<T> : IDisposable where T: IAmAMessage
         {
             while (true)
             {
-                //TODO: Consume a message from Kafka
-                
-                //TODO: Translate the message using the _translator function
-    
-                //TODO: Handle the message using the _handler function
-
-                //TODO: Store the offset for the partition in the background thread
+                // TODO: Consume a message from Kafka
+                // Translate the message using the _translator function
+                // Handle the message using the _handler function
+                // Store the offset for the partition in the background thread
                 //We don't want to commit unless we have successfully handled the message
                 //_consumer.Commit(consumeResult); would commit manually, but with EnableAutoOffsetStore disabled,
                 //we can instead just manually store "done" offsets for a background thread to commit

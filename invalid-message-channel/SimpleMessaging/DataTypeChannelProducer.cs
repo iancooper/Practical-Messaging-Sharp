@@ -52,7 +52,7 @@ namespace SimpleMessaging
             
             //TODO create an argument dictionary, that has arguments for the invalid message exchange and routing key
            
-            //TODO: Create our consumer queue, but add the arguments that hook up the invalid message queue (tip might be calle deal letter in RMQ docs)
+            //TODO: Create our consumer queue, but add the arguments that hook up the invalid message queue (tip DLQ in RMQ docs)
             _channel.QueueBind(queue:queueName, exchange: ExchangeName, routingKey: _routingKey);
             
             //declare a queue for invalid messages off an invalid message exchange

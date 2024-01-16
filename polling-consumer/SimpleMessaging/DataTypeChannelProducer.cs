@@ -43,10 +43,6 @@ namespace SimpleMessaging
               We name the queue after that routing key as we are point-to-point and only expect one queue to receive
              this type of message */
             _routingKey = "Polling-Consumer." + typeof(T).FullName;
-            var queueName = _routingKey;
-
-            var invalidRoutingKey = "invalid." + _routingKey;
-            var invalidMessageQueueName = invalidRoutingKey;
             
             //Just declare the exchange, we don't need to declare the queue as we are not receiving
             //This drops our point-to-point approach in favor of relying on routing to subscribers via the broker

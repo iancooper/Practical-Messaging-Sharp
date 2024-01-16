@@ -7,7 +7,7 @@ namespace SimpleMessaging
     public class DataTypeChannelProducer<T> : IDisposable where T: IAmAMessage
     {
         private readonly Func<T, string> _messageSerializer;
-        private string _routingKey;
+        private readonly string _routingKey;
         private const string ExchangeName = "practical-messaging";
         private readonly IConnection _connection;
         private readonly IModel _channel;
@@ -18,8 +18,6 @@ namespace SimpleMessaging
         ///     1. Create a socket connection to the broker
         ///     2. Create a channel on that socket
         ///     3. Create a direct exchange on the server for point-to-point messaging
-        /// We don't create the receiving queue - each consumer does that, and will route to our
-        /// key.
         /// We have split producer and consumer, as they need separate serialization/de-serialization of the message
         /// We are disposable so that we can be used within a using statement; connections
         /// are unmanaged resources and we want to remember to close them.
@@ -51,7 +49,7 @@ namespace SimpleMessaging
         /// Send a message over the channel
         /// Uses the shared routing key to ensure the sender and receiver match up
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">The message that we are sending</param>
         public void Send(T message)
         {
             //TODO: Serialize the message Tip, convert to UTF8

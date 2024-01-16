@@ -16,10 +16,10 @@ namespace Sender
             
  
             using (var channel = new DataTypeChannelProducer<Greeting>(
-                 greeting.Steps[1].RoutingKey,
-                (message) => JsonConvert.SerializeObject(message)
+                       (message) => JsonConvert.SerializeObject(message), 
+                       greeting.Steps[1].RoutingKey
+                       )
                 )
-            )
             {
                 Console.WriteLine(" Press [enter] to exit.");
                 int loop = 0;
@@ -34,18 +34,18 @@ namespace Sender
                         {
                             break;
                         }
-                   }
+                    }
                     
-                   greeting.Salutation = "Hello World! #" + loop;
-                   channel.Send(greeting);
-                   Console.WriteLine("Sent message {0}", greeting.Salutation);
-                   loop++;
+                    greeting.Salutation = "Hello World! #" + loop;
+                    channel.Send(greeting);
+                    Console.WriteLine("Sent message {0}", greeting.Salutation);
+                    loop++;
                     
-                   if (loop % 10 == 0)
-                   {
-                       Console.WriteLine("Pause for breath");
-                       Task.Delay(3000).Wait(); // yield
-                   }
+                    if (loop % 10 == 0)
+                    {
+                        Console.WriteLine("Pause for breath");
+                        Task.Delay(3000).Wait(); // yield
+                    }
                 }
             }
         }

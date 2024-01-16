@@ -20,6 +20,7 @@ namespace SimpleMessaging
         ///     3. Create a direct exchange on the server for point-to-point messaging 
         ///     4. Create a queue to hold messages
         ///     5. Bind the queue to listen to a routing key on that exchange
+        /// We have split producer and consumer, as they need separate serialization/de-serialization of the message
         /// We are disposable so that we can be used within a using statement; connections
         /// are unmanaged resources and we want to remember to close them.
         /// We are following an RAI pattern here: Resource Acquisition is Initialization
@@ -48,8 +49,8 @@ namespace SimpleMessaging
 
         /// <summary>
         /// Receive a message from the queue
-        /// The queue should have received all message published because we create it in the constructor, so the
-        /// producer will create as well as the consumer making the ordering unimportant
+        /// The queue should have received all message published because we create it in both the producer and consumer.
+        /// We can do this in P2P as we are only expecting one consumer to receive the message.
         /// </summary>
         /// <returns></returns>
         public T Receive()

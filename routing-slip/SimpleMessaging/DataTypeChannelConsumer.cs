@@ -32,10 +32,13 @@ namespace SimpleMessaging
         /// failed to send to application code messages to it
         /// We pass in the routing key, over figuring it from the data type to support routing slips
         /// </summary>
-        /// <param name="routingKey">The key of this step</param>
         /// <param name="messageDeserializer">Takes the message body and turns it into an instance of type T</param>
+        /// <param name="routingKey">The key of this step</param>
         /// <param name="hostName"></param>
-        public DataTypeChannelConsumer(string routingKey, Func<string, T> messageDeserializer, string hostName = "localhost")
+        public DataTypeChannelConsumer(
+            Func<string, T> messageDeserializer, 
+            string routingKey,
+            string hostName = "localhost")
         {
             _messageDeserializer = messageDeserializer;
             //just use defaults: usr: guest pwd: guest port:5672 virtual host: /

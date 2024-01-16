@@ -66,7 +66,7 @@ namespace SimpleMessaging
         /// Send a message over the channel
         /// Uses the shared routing key to ensure the sender and receiver match up
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">The message that we are sending</param>
         public void Send(TActual message)
         {
             var body = Encoding.UTF8.GetBytes(_messageSerializer(message));

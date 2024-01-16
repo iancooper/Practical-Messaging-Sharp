@@ -11,7 +11,10 @@ namespace SimpleMessaging
         private readonly Func<string, T> _messageSerializer;
         private readonly string _hostName;
 
-        public PollingConsumer(string routingKey, IAmAHandler<T> messageHandler, Func<string, T> messageSerializer, string hostName = "localhost")
+        public PollingConsumer(Func<string, T> messageSerializer,
+            IAmAHandler<T> messageHandler,
+            string routingKey,
+            string hostName = "localhost")
         {
             _routingKey = routingKey;
             _messageHandler = messageHandler;
@@ -24,7 +27,7 @@ namespace SimpleMessaging
             var task = Task.Factory.StartNew(() =>
                 {
                     ct.ThrowIfCancellationRequested();
-                    using (var channel = new DataTypeChannelConsumer<T>(_routingKey, _messageSerializer, _hostName))
+                    using (var channel = new DataTypeChannelConsumer<T>(_messageSerializer, _routingKey, _hostName))
                     {
                         while (true)
                         {

@@ -41,7 +41,7 @@ namespace SimpleMessaging
                  * Set the correlation id
                  * serialize the message
                  * Turn it into UTF8
-                 * Publish th othe default exchange hint: "" where routing key = queue name
+                 * Publish on the default exchange hint: "" where routing key = queue name
                  * 
                  */
                

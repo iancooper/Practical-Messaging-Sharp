@@ -26,18 +26,18 @@ namespace Sender
                         {
                             break;
                         }
-                   }
-                   var greeting = new Greeting();
-                   greeting.Salutation = "Hello World! #" + loop;
-                   channel.Send(greeting);
-                   Console.WriteLine("Sent message {0}", greeting.Salutation);
-                   loop++;
+                    }
+                    var greeting = new Greeting();
+                    greeting.Salutation = "Hello World! #" + loop;
+                    channel.Send(greeting);
+                    Console.WriteLine("Sent message {0}", greeting.Salutation);
+                    loop++;
                     
-                   if (loop % 10 == 0)
-                   {
-                       Console.WriteLine("Pause for breath");
-                       Task.Delay(3000).Wait(); // yield
-                   }
+                    if (loop % 10 == 0)
+                    {
+                        Console.WriteLine("Pause for breath");
+                        Task.Delay(3000).Wait(); // yield
+                    }
                 }
             }
         }

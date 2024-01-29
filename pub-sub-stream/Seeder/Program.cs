@@ -3,8 +3,6 @@ using bio_seeder;
 using Model;
 using SimpleEventing;
 
-const string topic = "biography";
-
 var biographies = new BiographySeeder();
 using var producer = new DataTypeChannelProducer<Biography>(biography => JsonSerializer.Serialize(biography));
 

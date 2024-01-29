@@ -47,8 +47,7 @@ namespace SimpleMessaging
             //The producer does not know its clients, so we only declare the exchange to send to
             //This means that you need to run the consumer first, so that the queue exists or messages
             //will be lost
-            _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: true); 
- 
+            _channel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: true);
     }
 
         /// <summary>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Sender</AssemblyName>
+    <RootNamespace>Sender</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Model\Model.csproj" />
+    <ProjectReference Include="..\SimpleMessaging\SimpleMessaging.csproj" />
+    <!-- Only for 'bad-event', which appends a record to the stream directly so you have a
+         poison record to deal with in Probe B. -->
+    <ProjectReference Include="..\SimpleEventing\SimpleEventing.csproj" />
+  </ItemGroup>
+</Project>

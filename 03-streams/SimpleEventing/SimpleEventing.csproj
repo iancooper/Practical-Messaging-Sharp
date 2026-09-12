@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <!-- Same rule, same reason: the eventing gateway is the only project that may name a
+         Kafka type. Nothing downstream of it can, unless it asks for the package itself. -->
+    <PackageReference Include="Confluent.Kafka" PrivateAssets="compile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleMessaging\SimpleMessaging.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,67 @@
+# Everything the exercises need, in one file.
+#
+# RabbitMQ is the queue for exercises 1 and 2. Kafka is the stream for exercise 3.
+# Both are single containers. Kafka runs in KRaft mode, so there is no Zookeeper,
+# no schema registry and no control centre -- none of which any exercise uses.
+#
+#   docker compose up -d
+#
+# RabbitMQ management console: http://localhost:15672  (guest / guest)
+# You will live in that console. It is the part of these exercises an agent cannot do for you.
+
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: practical-messaging-rmq
+    # RMQ keeps its message store in a directory named after the hostname. Pin the hostname
+    # or a restart lands the store somewhere else and your "persistent" messages are gone.
+    hostname: rabbitlocalhost
+    ports:
+      - "5672:5672"     # AMQP
+      - "15672:15672"   # management console
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  kafka:
+    image: apache/kafka:4.1.0
+    container_name: practical-messaging-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # Single node acting as both broker and controller. This is the whole of KRaft setup.
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:29092,CONTROLLER://:9093,PLAINTEXT_HOST://:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      # One node, so nothing can be replicated more than once.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      # Exercise 3 wants you to see partitions, so let the topic be created with more than one.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    restart: on-failure
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+volumes:
+  rabbitmq-data:
+    driver: local
+  kafka-data:
+    driver: local

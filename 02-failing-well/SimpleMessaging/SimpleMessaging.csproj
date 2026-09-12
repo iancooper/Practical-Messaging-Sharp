@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <!-- The gateway is the one project that is allowed to know which broker this is.
+         PrivateAssets="compile" stops the reference flowing to projects that reference us:
+         they still get the assembly at runtime, but they cannot *name* a RabbitMQ type
+         without asking for the package themselves.
+
+         So "the domain must not depend on the broker" is not a code-review opinion here.
+         It is a compile error, and exercise 1 is where that was earned. -->
+    <PackageReference Include="RabbitMQ.Client" PrivateAssets="compile" />
+  </ItemGroup>
+</Project>

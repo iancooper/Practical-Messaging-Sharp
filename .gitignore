@@ -286,3 +286,9 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+
+# Session working state -- where we are, what is verified, what is next.
+# The canonical copy lives one level up, in practical-messaging-samples/, because it has to
+# drive all five language repos. This entry is here so a copy pulled in for convenience
+# cannot be committed by accident.
+PROMPT.md

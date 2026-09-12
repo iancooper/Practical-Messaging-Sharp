@@ -107,7 +107,9 @@ kill -9 <pid>
 
 **Wait ten seconds before you believe that number.** The management console refreshes its
 statistics on a timer, so straight after a kill it may still be showing you the state from
-before — and a correct prediction can look wrong for five seconds.
+before — and a correct prediction can look wrong for five seconds. **Kafka has a slower version of
+the same problem**, and if terminal 1 has gone quiet that is the first thing to suspect: see
+*Two things to know before you trust a number* in `../00-setup/README.md`.
 
 Then restart the Receiver — without the window this time — and watch terminal 1.
 
@@ -125,12 +127,24 @@ dotnet run --project Receiver
 ▎ **The queue behaved perfectly.** It held the message because you never acked it, and it redelivered it to the next consumer, which is precisely what you asked exercise 2 to make it do. And because of that, you placed one order and told the world twice.
 
 **Now do it the other way round.** Move the acknowledgement in `SimpleMessaging/MessagePump.cs`
-so it happens *before* `_handler.Handle(...)` instead of after. Reset, and run the same probe.
+so it happens *before* `_handler.Handle(...)` instead of after. Reset, and run the probe again — but
+**aim the kill somewhere else this time**, and the reason is worth a moment of its own.
+
+`DUAL_WRITE_WINDOW` holds the process open *after* the event is on the stream. That is the gap
+that duplicates, and it is the one you have just been aiming at. With the ack moved, the gap that
+*loses* is the one **before** the Kafka write — so that is where the process has to die, and the
+window is no use to you. The slow lookup gives you thirty seconds of it instead:
+
+```
+dotnet run --project Sender -- slow  # then kill the receiver during the lookup, before the event
+```
 
 ```
 5. Events on the stream now?                                             ______
 6. Orders RabbitMQ still has a record of?                                ______
 ```
+
+▎ **The receiver's own message is a lie now, and nothing broke to make it one.** It still announces that the event is on the stream and RabbitMQ has not been acked. You moved one line, and a log statement that was true became false — which is worth remembering the next time you trust one.
 
 ▎ One ordering duplicates. The other loses. **There is no third place to put that line** — and you have just proved it by exhausting the options.
 

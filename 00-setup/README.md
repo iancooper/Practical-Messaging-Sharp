@@ -26,16 +26,35 @@ docker compose down -v        # and now they don't
 
 RabbitMQ management console: <http://localhost:15672>, `guest` / `guest`.
 
-## One thing to know before you trust a number ##
+## Two things to know before you trust a number ##
 
-**The management console's statistics refresh on a timer — about every five seconds.**
+Both of these will, at some point, show you a number that makes a correct prediction look wrong.
+Neither is a quirk of the exercises.
+
+### 1. RabbitMQ's console refreshes on a timer — about every five seconds ###
 
 So immediately after you kill a consumer, the console may still show the state from before you
 killed it. If a probe's number looks wrong, wait ten seconds and look again before you conclude
 your prediction was wrong. It usually was not.
 
-This is not a quirk of the exercises; it is how you will misread a production dashboard one day.
-`queues.sh` reads the same API and has the same delay.
+This is how you will misread a production dashboard one day. `queues.sh` reads the same API and has
+the same delay.
+
+### 2. Kafka keeps a dead consumer's partitions for up to 45 seconds ###
+
+A consumer group holds a member until its session times out — 45 seconds by default — and the
+broker cannot tell a process that has died from one that is merely slow. So if you stop a stream
+consumer and start another straight away, or run `reset.sh` and start one immediately, **the new
+consumer can join the group, be given no partitions at all, and sit in silence** while records pile
+up behind it.
+
+**That looks exactly like a lost event and it is not one.** `lag.sh` is what tells you apart: a
+partition with no CURRENT offset and no lag figure is a partition **nobody is holding**, which is a
+different problem from a partition that is behind. Wait for the assignment before you believe
+anything a quiet consumer is telling you.
+
+This is the stream-shaped version of the same lesson: **the broker's answer is about what the broker
+currently believes, not about what is true.**
 
 ## Why this compose file looks the way it does ##
 

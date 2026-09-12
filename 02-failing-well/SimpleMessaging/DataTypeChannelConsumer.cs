@@ -8,7 +8,7 @@ namespace SimpleMessaging;
 ///
 /// **The plumbing is given to you and it is correct.** Declaring exchanges and binding queues
 /// is AMQP vocabulary, not judgement, and you can read it here at your leisure. The exercise is
-/// deciding *which of these four to call, and when* -- and that lives in the pump.
+/// deciding *which of these five to call, and when* -- and that lives in the pump.
 /// </summary>
 public sealed class DataTypeChannelConsumer<T> : IAsyncDisposable where T : IAmAMessage
 {
@@ -40,8 +40,8 @@ public sealed class DataTypeChannelConsumer<T> : IAsyncDisposable where T : IAmA
         await channel.ExchangeDeclareAsync(Channel.DeadLetterExchangeName, ExchangeType.Direct, durable: true);
 
         // The work queue. Rejecting a message from here (nack, requeue:false) sends it to the
-        // dead-letter exchange with the *invalid* routing key -- so a rejection lands in the
-        // invalid message queue without us publishing anything.
+        // dead-letter exchange with the *retry* routing key -- so a rejection lands in the
+        // retry queue without us publishing anything.
         //
         // Note what this means: the queue's dead-letter routing key is fixed at declare time.
         // One reject, one destination. Anything else you want to do with a message, you do by
@@ -98,14 +98,14 @@ public sealed class DataTypeChannelConsumer<T> : IAsyncDisposable where T : IAmA
 
     /// <summary>
     /// Reject it. Because of the work queue's arguments, the broker routes it to the
-    /// **invalid message queue**. One call, and RabbitMQ does the moving.
+    /// **retry queue**, where it waits and then comes back on its own. One call, and RabbitMQ
+    /// does the moving -- and because RabbitMQ owns both hops, RabbitMQ counts them for you.
     /// </summary>
     public ValueTask RejectForRetry(ulong deliveryTag) =>
         _channel.BasicNackAsync(deliveryTag, multiple: false, requeue: false);
 
     /// <summary>
-    /// Send it to the retry queue, where it will wait <see cref="Channel.RetryDelay"/> and then
-    /// come back to the work queue on its own.
+    /// Publish it to the invalid message queue. Terminal: a body nobody can read.
     ///
     /// This is a publish, not a reject -- so the original delivery is still outstanding and it
     /// is still your problem. Headers are carried forward, because x-death is the attempt count

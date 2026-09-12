@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/01-message-pump/PROBE.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 1 — The Message Pump #
 
 **35 minutes.** Deck reference: Day 1 §4.3 *The Message Pump*, *Translate and Dispatch*,
@@ -11,8 +12,8 @@ A producer and a consumer that work. Two terminals:
 
 ```
 cd 01-message-pump
-dotnet run --project Receiver       # terminal 1: the pump
-dotnet run --project Sender         # terminal 2: sends one order
+dotnet run --project Receiver  # terminal 1: the pump
+dotnet run --project Sender    # terminal 2: sends one order
 ```
 
 An order goes on a queue, comes off it, and gets priced. There is nothing to make work.
@@ -107,7 +108,7 @@ real problem.
 Run it. Then, **without restarting the receiver**, send a good order:
 
 ```
-dotnet run --project Sender          # a perfectly good WIDGET-1
+dotnet run --project Sender  # a perfectly good WIDGET-1
 ```
 
 - Does it get priced? `____`

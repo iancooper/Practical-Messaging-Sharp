@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/04-lookup/README.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 4 — The Lookup *(optional, take home)* #
 
 **There is no code in this directory, and that is deliberate.** Exercises 1 to 3 gave you a

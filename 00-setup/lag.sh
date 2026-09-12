@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Generated from the canonical exercise source (shared/00-setup/lag.sh) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit.
 #
 # What Kafka thinks is going on: the consumer group's offset per partition, and the lag.
 #

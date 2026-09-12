@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/02-failing-well/PROBE.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 2 — Failing Well #
 
 **40 minutes.** Deck reference: Day 1 §4.4 *When the Handler Fails — Ack and Nack*, *Not Acking
@@ -21,8 +22,8 @@ not show up in your logs as a crash.**
 
 ```
 cd 02-failing-well
-dotnet run --project Receiver       # terminal 1
-dotnet run --project Sender         # terminal 2
+dotnet run --project Receiver  # terminal 1
+dotnet run --project Sender    # terminal 2
 ```
 
 **Management console open at <http://localhost:15672>, and this time there are four queues.**
@@ -64,8 +65,8 @@ not, that is the alert. Find out which two.
 Now run it, and capture the receiver's output so you can count what happens.
 
 ```
-dotnet run --project Receiver | tee /tmp/probe-a.log     # terminal 1
-dotnet run --project Sender -- unmappable                # terminal 2
+dotnet run --project Receiver | tee /tmp/probe-a.log  # terminal 1
+dotnet run --project Sender -- unmappable             # terminal 2
 ```
 
 **Watch terminal 1 for about ten seconds** — you will see why we are capturing it — then stop
@@ -104,7 +105,7 @@ first, commit to the answer:
 **Write those down before you read another word.** Then do the FIX below, come back, and run:
 
 ```
-dotnet run --project Sender -- poison       # NOPE-404: never in the catalogue, ever
+dotnet run --project Sender -- poison  # NOPE-404: never in the catalogue, ever
 ```
 
 Count the handler invocations in the log, and then **go and find the message in the console**.

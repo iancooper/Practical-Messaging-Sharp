@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/03-streams/PROBE.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 3 — The Same Guarantees on a Stream #
 
 **30 minutes, and there is nothing to build.** Deck reference: Day 1 §4.4 *The Dual-Write
@@ -19,9 +20,9 @@ A command in on a queue; a fact out on a stream. **You have almost certainly wri
 
 ```
 cd 03-streams
-dotnet run --project Receiver           # RabbitMQ consumer AND Kafka producer
-dotnet run --project StreamConsumer     # Kafka consumer, counts what it sees
-dotnet run --project Sender             # one order
+dotnet run --project Receiver        # RabbitMQ consumer AND Kafka producer
+dotnet run --project StreamConsumer  # Kafka consumer, counts what it sees
+dotnet run --project Sender          # one order
 ```
 
 Three terminals, and two ways to look at what the brokers think:
@@ -154,8 +155,8 @@ dotnet run --project Sender -- bad-event  # appends an unreadable record to the 
 Now, **with the consumer still stuck**, put good traffic behind it:
 
 ```
-dotnet run --project Receiver             # terminal 2
-dotnet run --project Sender -- burst 6    # terminal 3
+dotnet run --project Receiver           # terminal 2
+dotnet run --project Sender -- burst 6  # terminal 3
 ../00-setup/lag.sh
 ```
 

@@ -1,10 +1,11 @@
+<!-- Generated from the canonical exercise source (docs/01-message-pump/README.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 1 — The Message Pump #
 
 **Start with [PROBE.md](PROBE.md).** It is the exercise. 35 minutes.
 
 ```
-dotnet run --project Receiver     # the pump
-dotnet run --project Sender       # sends one order
+dotnet run --project Receiver  # the pump
+dotnet run --project Sender    # sends one order
 ```
 
 Management console: <http://localhost:15672> (`guest` / `guest`) — keep it open.

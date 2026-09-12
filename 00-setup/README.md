@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/00-setup/README.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Setup #
 
 ```

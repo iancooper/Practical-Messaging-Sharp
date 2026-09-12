@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/README.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Practical Messaging — C# exercises #
 
 Three exercises, about two hours, on your own laptop. **Day 1, §4.3 to §4.5.**
@@ -15,7 +16,7 @@ cd Practical-Messaging-Sharp/00-setup
 ./prereqs.sh
 ```
 
-You need **Docker** and the **.NET 10 SDK**. That is all. No cloud account, no API key, and
+You need **Docker** and **the .NET 10 SDK**. That is all. No cloud account, no API key, and
 nothing to sign up for.
 
 If `prereqs.sh` reports a failure, bring its output with you and we will sort it out in the

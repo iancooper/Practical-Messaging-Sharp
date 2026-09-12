@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/02-failing-well/SOLUTION.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 2 — what the fix is #
 
 **Prose, on purpose. No code.** The compiling version is in `../03-streams/`, which is where

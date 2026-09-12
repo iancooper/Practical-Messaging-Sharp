@@ -1,10 +1,11 @@
+<!-- Generated from the canonical exercise source (docs/02-failing-well/README.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 2 — Failing Well #
 
 **Start with [PROBE.md](PROBE.md).** 40 minutes.
 
 ```
-dotnet run --project Receiver     # the pump
-dotnet run --project Sender       # a good order
+dotnet run --project Receiver  # the pump
+dotnet run --project Sender    # a good order
 dotnet run --project Sender -- unmappable | poison | flaky | slow | burst 20
 ```
 

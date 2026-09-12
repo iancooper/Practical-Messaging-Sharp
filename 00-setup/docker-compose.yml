@@ -1,3 +1,4 @@
+# Generated from the canonical exercise source (shared/00-setup/docker-compose.yml) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit.
 # Everything the exercises need, in one file.
 #
 # RabbitMQ is the queue for exercises 1 and 2. Kafka is the stream for exercise 3.

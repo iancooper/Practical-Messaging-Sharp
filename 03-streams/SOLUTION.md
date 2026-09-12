@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/03-streams/SOLUTION.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 3 — the answers #
 
 **There is no code to write in exercise 3, so this is not a fix.** It is what the probes show,

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Generated from the canonical exercise source (shared/00-setup/reset.sh) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit.
 #
 # Put the brokers back to empty. Run this between probes when you want a clean number.
 #

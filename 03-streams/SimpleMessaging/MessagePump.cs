@@ -72,8 +72,9 @@ public sealed class MessagePump<T> where T : IAmAMessage
             {
                 // A failure to UNDERSTAND. The bytes are not going to change, so there is
                 // nothing to retry -- retrying this is the definition of a poison pill.
-                // Reject it, and the work queue's dead-letter routing key does the moving:
-                // it lands on the invalid message queue, where someone can go and look at it.
+                // Publish it to the invalid message queue, where someone can go and look at
+                // it. A reject would send it to the *retry* queue, which is the one thing this
+                // message must never go to.
                 Console.WriteLine($"  INVALID: {e.Message}");
                 Console.WriteLine($"  -> {Channel.InvalidQueueNameFor<T>()}");
                 await consumer.SendToInvalidMessageQueue(delivery);

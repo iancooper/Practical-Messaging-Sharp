@@ -1,3 +1,4 @@
+<!-- Generated from the canonical exercise source (docs/01-message-pump/SOLUTION.md) by emit.py, which lives in the practical-messaging-samples working directory alongside the five language repos. Do not edit this copy -- edit the canonical source and re-emit. -->
 # Exercise 1 — what the fix is #
 
 **This file is prose on purpose.** There is no code in it.

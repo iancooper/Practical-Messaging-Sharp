@@ -32,7 +32,13 @@ using var publisher = new KafkaEventPublisher<OrderPlaced>(
         partitionKey: @event => @event.OrderId));
 
 using var prices = await SqlitePriceStore.OpenAsync();
-Console.WriteLine($"Local copy is {SqlitePriceStore.DefaultPath}, holding {await prices.Count()} prices.");
+
+// Say how old the copy is, once, at startup. It is the only line in the system that knows --
+// and watch what Probe C makes of that. Knowing at startup is not the same as noticing, and a
+// receiver that prices ten thousand orders from a four-day-old copy will say this once.
+var newest = await prices.NewestChangedAt();
+var age = newest is null ? "empty" : $"newest change {Age(newest.Value)} old";
+Console.WriteLine($"Local copy is {SqlitePriceStore.DefaultPath}, holding {await prices.Count()} prices -- {age}.");
 
 var pump = new MessagePump<PlaceOrder>(
     new PlaceOrderMapper(),
@@ -49,3 +55,14 @@ catch (OperationCanceledException)
 }
 
 Console.WriteLine("Receiver stopped.");
+
+// How old, in words, without saying "1 minutes". A copy's age is the one number that tells a
+// current local copy from a stale one, so it is worth printing in a shape a human reads.
+static string Age(DateTimeOffset when)
+{
+    var d = DateTimeOffset.UtcNow - when;
+    return d.TotalMinutes < 1 ? $"{d.TotalSeconds:0}s"
+         : d.TotalHours   < 1 ? $"{d.TotalMinutes:0}m"
+         : d.TotalDays    < 1 ? $"{d.TotalHours:0}h"
+                              : $"{d.TotalDays:0}d";
+}

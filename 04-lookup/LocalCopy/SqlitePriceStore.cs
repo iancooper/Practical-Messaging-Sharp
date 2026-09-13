@@ -104,7 +104,6 @@ public sealed class SqlitePriceStore : IPriceStore, IDisposable
         return appliedAt;
     }
 
-    /// <summary>The newest thing in the copy, or null if there is nothing in it. Probe C.</summary>
     public async Task<DateTimeOffset?> NewestChangedAt()
     {
         await using var command = _connection.CreateCommand();

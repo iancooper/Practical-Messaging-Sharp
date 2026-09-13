@@ -5,6 +5,16 @@ public class UnknownSkuException(string sku)
     : Exception($"'{sku}' is not in the catalogue");
 
 /// <summary>
+/// Transient. We have no copy of the catalogue yet -- the price consumer has not started, or
+/// has not caught up. The SKU may be perfectly good; we are simply not ready to price it.
+///
+/// **This is a different fact from <see cref="UnknownSkuException"/> and the difference is the
+/// point of Probe C.** One of them is about the order and one of them is about us.
+/// </summary>
+public class LocalCopyEmptyException(string sku)
+    : Exception($"cannot price '{sku}': the local copy has no prices in it yet");
+
+/// <summary>
 /// Reference data the handler needs: what does this SKU cost?
 ///
 /// **Everything about how this answers has changed, and its signature has not.** In exercises
@@ -16,19 +26,6 @@ public class UnknownSkuException(string sku)
 ///
 /// The handler did not change. It still asks the catalogue for a price, and the catalogue
 /// still decides where prices come from. That is what the seam was for.
-///
-/// ---------------------------------------------------------------------------------------
-///  **PROBE C IS ABOUT THE FOUR LINES OF PriceOf, AND THEY ARE THE EASY ANSWER.**
-///
-///  The store can tell you whether it has any prices at all. This does not ask. So an empty
-///  local copy -- the price consumer has never run, or has not caught up -- comes out of here
-///  as UnknownSkuException, which is a *permanent* failure, which the pump will retry n times
-///  and then dead-letter. The order is thrown away because the lookup was not ready yet.
-///
-///  Exercise 2 taught you that a failure to understand and a failure to process need different
-///  destinations. This is the same distinction one layer down, and the fix is small. Run Probe
-///  C before you read SOLUTION.md.
-/// ---------------------------------------------------------------------------------------
 /// </summary>
 public class Catalogue(IPriceStore prices)
 {
@@ -36,9 +33,19 @@ public class Catalogue(IPriceStore prices)
     {
         var price = await prices.Lookup(sku);
 
-        if (price is null)
-            throw new UnknownSkuException(sku);
+        if (price is not null)
+            return price.Amount;
 
-        return price.Amount;
+        // Two different failures wear the same shape -- a lookup that returned nothing -- and
+        // exercise 2 spent forty minutes on why that matters. "I have no copy yet" is about us
+        // and will fix itself; "that SKU is not a thing" is about the order and never will.
+        //
+        // **The domain's job is to say which.** What to do about each is the pump's policy and
+        // not ours, and Probe C is about the fact that the pump currently does the same thing
+        // with both.
+        if (await prices.Count() == 0)
+            throw new LocalCopyEmptyException(sku);
+
+        throw new UnknownSkuException(sku);
     }
 }

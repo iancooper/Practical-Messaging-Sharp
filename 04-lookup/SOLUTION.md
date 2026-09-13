@@ -5,8 +5,9 @@
 It is what a good answer contains, what the probes show, and which of the decisions in
 `README.md` were the ones that mattered.
 
-**The worked answer is in this directory**, and it is one answer rather than the answer. Read
-this first if you built your own — the interesting comparison is the decisions, not the code.
+**The worked answer is in this directory**, and it is one answer rather than the answer — there
+is nothing planted in it and nothing left broken. Read this first if you built your own; the
+interesting comparison is the decisions, not the code.
 
 ---
 
@@ -93,20 +94,37 @@ and there are three answers, in increasing order of how much they are worth:
 
 ## Probe C — the empty copy, and the old one ##
 
-The first half is unchanged from the in-process version, and the finding is the same: **a lookup
-that returns nothing cannot tell you *why* it returned nothing.** "I have no copy yet" and "that
-SKU does not exist" arrive as the same answer, and they want opposite responses — the first is
-transient and should be retried, the second is permanent and should be dead-lettered. That is
-exercise 2's distinction, one layer down, and your `IPriceStore` interface is where you
-get to make it: *"I have no price for that"* and *"I have no prices at all"* are different
-questions, and the store can answer both.
+**A lookup that returns nothing cannot tell you *why* it returned nothing**, and that is the
+first thing to get right. "I have no copy yet" and "that SKU does not exist" arrive as the same
+`null`, and they are opposite facts: one is about us and fixes itself, the other is about the
+order and never will. **Your `IPriceStore` interface is where you decide whether that is
+knowable at all** — *"have you a price for this?"* and *"have you any prices at all?"* are two
+questions, and an interface that only offers the first has thrown the distinction away before
+anybody could use it.
 
-**The answer in this directory does not ask the second one, on purpose.** The store has the method;
-`Catalogue` ignores it and turns every miss into an unknown SKU, which is permanent, which
-means retried and then dead-lettered. Measured: a good order for `WIDGET-1` died in
-`dead.streams.Model.PlaceOrder` after four attempts, because the price consumer had not started
-yet. **The fix is about four lines and it is the only code this exercise asks you to change in the
-worked answer** — which is why it is marked in capitals rather than hidden.
+The answer here asks both, and `Catalogue` throws two different exceptions. **And then
+nothing downstream cares**, which is the part worth the probe:
+
+| | what the domain says | what the pump does |
+|---|---|---|
+| `WIDGET-1`, copy empty | `the local copy has no prices in it yet` | 3 retries, then dead-lettered |
+| `NOPE-404`, copy full | `'NOPE-404' is not in the catalogue` | 3 retries, then dead-lettered |
+
+Measured, and identical to the second. **Exercise 2's pump has two answers and needs three.** A
+body it cannot read is never retried; everything else is retried *n* times and dead-lettered; and
+there is no third door for *"this is fine, we are not ready, ask again in a minute"*.
+
+So the honest answer to blank 10 is **both, differently**:
+
+- **The unknown SKU should never be retried.** It is as permanent as an unreadable body, and it
+  is sitting in a retry queue for fifteen seconds for no reason. It wants the invalid-message
+  door, or one beside it — the failure is in the *message*, not in the work.
+- **The empty copy should be retried far longer than twenty seconds**, because "has the price
+  consumer started yet" is a question whose answer arrives in minutes, and dead-lettering a
+  perfectly good order because your own infrastructure was slow is the kind of loss that gets
+  discovered in a reconciliation.
+
+▎ **None of that is a change to the domain**, and that is the lesson to carry out. `Catalogue` cannot know what a good response to being unready is — that depends on the channel, the retry budget, and what the business does about a lost order, none of which are its business. **It can only tell the truth precisely enough that somebody else can decide.** Getting the exception types right is not pedantry; it is the difference between a policy that *can* be written and one that cannot.
 
 **The second half is what a durable copy adds, and it is the state nobody designs for.** Restart
 everything and the orders keep pricing — from a file, with no consumer running, with no
@@ -122,9 +140,17 @@ So there are three states, not two:
 when it was written, the third state becomes visible and can be alarmed on. If it does not, you
 have built a system whose correctness you cannot check.
 
-Measured: stop every process, start only the receiver, and it announces `holding 2 prices` and
-prices the order. That output is identical to a healthy system's. **The copy is the same shape
-whether it is four seconds old or four months old**, and nothing in the run tells you which.
+Measured: stop every process, start only the receiver, and it announces `holding 2 prices --
+newest change 2m old` and prices the order.
+
+**It told you.** `IPriceStore` can date the copy, the receiver prints it, and that is
+already better than most systems manage. It is also **not enough, and the reason is the shape of
+the failure rather than the shape of the code**: staleness is a thing that develops while a
+process runs, and a startup line is a measurement taken once, at the only moment it was certainly
+fine. Four days later the same process is still pricing orders and the only evidence is a log
+line that scrolled away.
+
+▎ **A number you print at startup is documentation. A number you check while running is monitoring.** They look identical in a code review and they are not the same artefact at all.
 
 ▎ An in-process map has only the first two states, which is exactly why it could not teach you this. **The cheapest store that survives a restart is also the first one that can lie to you.**
 

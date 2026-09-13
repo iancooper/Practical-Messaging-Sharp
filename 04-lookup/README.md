@@ -11,9 +11,6 @@ make: nothing is hidden, because the answer is not the point. Build your own fir
 exercise; the probes below run against either, and the probes are the part that teaches you
 something.
 
-**One thing in it is deliberately the easy answer**, the way exercises 1 and 2 ship a defect, and
-Probe C is what finds it. It is marked in capitals in the file it is in, so you will know when you
-have got there.
 
 Deck reference: Day 1 §6.2 *Reference Data* — *Get It On Demand* versus *Get It In Advance
 (ECST)*, and *Be Honest About the Trade*. Day 2 picks this up again as *FBP — Where Do Lookups
@@ -120,7 +117,8 @@ that is what take-home buys. You are done when:
 - you have **a number** for publish-to-applied staleness, from Probe A, that you measured rather
   than estimated
 - you can say what your system does when the price consumer is dead (Probe B) and when it has
-  never run (Probe C), and **which of those two your code currently confuses**
+  never run (Probe C), and **whether the same thing should happen to an order that arrived too
+  early as to one for a SKU that does not exist**
 - you have killed the price consumer inside its own write window (Probe D) and can say what it
   cost you
 - `PlaceOrderHandler` is untouched, and `Model/` has no SQLite dependency
@@ -211,20 +209,28 @@ and noticing that you had to:
 rm -f prices.db
 ```
 
-Then place an order without running the seeder at all.
+Then place an order **before you start the price consumer at all**, and a second one for a SKU
+that really does not exist **after the copy has filled up**. You need both, and in that order,
+because with an empty copy every SKU looks the same — which is rather the point:
 
 ```
-8. What does the handler see?                                           ______
-9. Is that the same as a SKU that does not exist?                       ______
-10. What should it do?                                                  ______
+dotnet run --project Sender            # WIDGET-1: fine, but we have no copy yet
+# ...now start the price consumer and seed it, then...
+dotnet run --project Sender -- poison  # NOPE-404: not a thing, and never will be
 ```
 
-**Measured, against the answer in this directory**: `'WIDGET-1' is not in the catalogue`, four
-attempts about five seconds apart, and then `dead.streams.Model.PlaceOrder`. **A good order, for a
-SKU that exists, thrown away because the lookup had not started yet.** Exercise 2's machinery did
-exactly what you built it to do; it was told the wrong thing.
+```
+8.  Are those two the same failure? Say what the difference is.          ______
+9.  Where does each of them end up, and how long does each one take?     ______
+10. Which of the two is your pump wrong about, and what would you
+    change to fix it?                                                    ______
+```
 
-▎ "I have no copy yet" and "that SKU is not a thing" are different facts, and a dictionary lookup returns the same answer for both. Exercise 2 taught you that a failure to understand and a failure to process need different destinations. This is the same distinction one layer down.
+**Measured**: the two orders report different things — `cannot price 'WIDGET-1': the local copy
+has no prices in it yet` and `'NOPE-404' is not in the catalogue` — and then **exactly the same
+thing happens to both**. Four attempts, about five seconds apart, and `dead.streams.Model.PlaceOrder`.
+
+▎ **The domain told the truth and the policy ignored it**, and that split is worth more than either half. `Catalogue` can only say *what is wrong*; the pump decides *what to do about it*, and exercise 2's pump has exactly two answers — a body it cannot read is never retried, and everything else is retried three times and then dead-lettered. **Neither answer is right for these two.** The unknown SKU is as permanent as an unreadable body and should never have been retried at all; the empty copy is transient and twenty seconds is a strange budget for "has the price consumer started yet". *You do not fix either of those in the domain.*
 
 **Now the half a map in memory could not show you.** Seed the prices, place an order, then stop
 every process — the consumer, the receiver, all of it — and start them again *without* seeding.
@@ -232,14 +238,18 @@ every process — the consumer, the receiver, all of it — and start them again
 ```
 11. Does the order still get priced?                                    YES / NO
 12. Where did that price come from, and how old is it?                  ______
-13. Which is worse: an empty copy, or one you cannot date?              ______
+13. The copy can tell you its age. Why is that still not enough?        ______
 ```
 
-**Measured**: the receiver starts, says `holding 2 prices`, and prices the order. No consumer is
-running. No seeder has run. Nothing in the output is different from a healthy system, and the
-prices could be from five minutes ago or from March.
+**Measured**: the receiver starts, says `holding 2 prices -- newest change 2m old`, and prices
+the order. No consumer is running. No seeder has run.
 
-▎ **A durable copy adds a third state, and it is the dangerous one.** "No copy", "a current copy" and "a copy from some time I did not record" are three different things, and only two of them are obvious from the outside. If your local copy does not carry the time it was written, you have built something that cannot tell you whether it is right. That is a schema decision, and you make it in step 1.
+**Read that line again, because it is the whole probe.** The receiver *knows* how old the copy is.
+It says so. And then it prices every order that arrives, for as long as it runs, without ever
+mentioning it again — so the difference between a copy two minutes old and one from March is
+one line of startup logging that scrolled off the top an hour ago.
+
+▎ **A durable copy adds a third state, and it is the dangerous one.** "No copy", "a current copy" and "an old copy" are three different things, and only the first is obvious from the outside. Carrying the time on every row is what makes the third one knowable at all, and it is a **schema** decision you make in step 1, long before anybody asks for it — get it wrong and no amount of monitoring can recover it. Getting it right, as the answer here does, buys you the *ability* to notice. It does not buy you noticing.
 
 ### PROBE D — the dual write, in your own code ###
 

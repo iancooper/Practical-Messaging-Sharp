@@ -22,9 +22,13 @@ public record Price(string Sku, decimal Amount, DateTimeOffset ChangedAt, DateTi
 ///  Model.csproj and you have undone it.
 /// ---------------------------------------------------------------------------------------
 ///
-/// Note that it can answer two different questions -- "have you a price for this?" and "have
-/// you any prices at all?" -- because those are different facts and Probe C is about telling
-/// them apart. Whether the caller *asks* both is another matter: see Catalogue.
+/// Note that it answers three different questions, not one. "Have you a price for this?" is the
+/// obvious one. "Have you any prices at all?" separates *the SKU is unknown* from *we are not
+/// ready yet*, which is Probe C. "How old is the newest thing you have?" is the only question
+/// that can tell a current copy from a stale one, and it is the one nothing asks often enough.
+///
+/// **A lookup that can only say yes or no cannot be operated.** That is a design decision you
+/// make when you write the interface, long before anybody needs the answer.
 /// </summary>
 public interface IPriceStore
 {
@@ -33,7 +37,16 @@ public interface IPriceStore
 
     /// <summary>
     /// How many prices the copy holds. **Zero means "I have never been filled"**, which is not
-    /// the same fact as "that SKU is not a thing" and should not produce the same behaviour.
+    /// the same fact as "that SKU is not a thing" and must not produce the same behaviour.
     /// </summary>
     Task<int> Count();
+
+    /// <summary>
+    /// When the catalogue last changed something we know about, or null if the copy is empty.
+    ///
+    /// **This is the number Probe C is really about.** A copy that cannot say how old it is
+    /// cannot be monitored, and a copy that cannot be monitored is one you find out about from
+    /// a customer.
+    /// </summary>
+    Task<DateTimeOffset?> NewestChangedAt();
 }

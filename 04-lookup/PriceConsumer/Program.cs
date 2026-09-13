@@ -37,7 +37,9 @@ using var reader = await EventStreamReader<PriceChanged>.CreateAsync(
     consumerGroup: SimpleEventing.Stream.PriceConsumerGroup);
 
 Console.WriteLine($"Following {reader.Topic} as group '{SimpleEventing.Stream.PriceConsumerGroup}'");
-Console.WriteLine($"Local copy is {SqlitePriceStore.DefaultPath}, holding {await store.Count()} prices.");
+var newest = await store.NewestChangedAt();
+Console.WriteLine($"Local copy is {SqlitePriceStore.DefaultPath}, holding {await store.Count()} prices" +
+                  (newest is null ? " -- empty." : $" -- newest change {Age(newest.Value)} old."));
 if (window > TimeSpan.Zero)
     Console.WriteLine($"PRICE_WRITE_WINDOW is {window.TotalSeconds:0}s -- there is a gap between the two writes.");
 
@@ -90,4 +92,15 @@ async Task PauseInTheWindow()
     Console.WriteLine("  [one of the two writes has happened and the other has not.]");
     Console.WriteLine($"  [you have {window.TotalSeconds:0} seconds. kill -9 {Environment.ProcessId}]");
     await Task.Delay(window, stopping.Token);
+}
+
+// How old, in words, without saying "1 minutes". A copy's age is the one number that tells a
+// current local copy from a stale one, so it is worth printing in a shape a human reads.
+static string Age(DateTimeOffset when)
+{
+    var d = DateTimeOffset.UtcNow - when;
+    return d.TotalMinutes < 1 ? $"{d.TotalSeconds:0}s"
+         : d.TotalHours   < 1 ? $"{d.TotalMinutes:0}m"
+         : d.TotalDays    < 1 ? $"{d.TotalHours:0}h"
+                              : $"{d.TotalDays:0}d";
 }

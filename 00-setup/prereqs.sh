@@ -50,8 +50,16 @@ for spec in "5672:RabbitMQ (AMQP)" "15672:RabbitMQ (management console)" "9092:K
   port=${spec%%:*}; what=${spec#*:}
   if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
     owner=$(docker ps --format '{{.Names}}\t{{.Ports}}' | awk -v p=":$port->" 'index($0,p){print $1; exit}')
-    bad "port $port ($what) is already in use${owner:+ by container '$owner'}"
-    busy="yes"
+    case "$owner" in
+      # Our own brokers, already up. This script starts them itself and says it is safe to run
+      # repeatedly, so the second run must not report the first run's success as a failure --
+      # nor refuse to start brokers that are already started. Only a *foreign* holder is a problem.
+      practical-messaging-rmq|practical-messaging-kafka)
+        ok "port $port in use by '$owner' -- that is ours, and it is already running" ;;
+      *)
+        bad "port $port ($what) is already in use${owner:+ by container '$owner'}"
+        busy="yes" ;;
+    esac
   else
     ok "port $port free -- $what"
   fi

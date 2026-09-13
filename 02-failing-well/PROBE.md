@@ -30,6 +30,14 @@ dotnet run --project Sender    # terminal 2
 Filter the Queues list on `failing-well`. Two of them should always be empty; when they are
 not, that is the alert. Find out which two.
 
+`../00-setup/queues.sh` prints the same numbers in a terminal, and **`../00-setup/reset.sh`
+empties all four — run it between probes.** Probe A deliberately leaves a message on the work
+queue, and Probe B's arithmetic only works on an empty one.
+
+> Remember from exercise 1 that the *Consumers* column reads 0 on every one of these, including
+> the work queue your receiver is draining: `basic.get` polls rather than subscribes. So the
+> console cannot answer question 1 below for you — the code can.
+
 ---
 
 ## READ — 5 minutes, no agent ##
@@ -41,7 +49,7 @@ not, that is the alert. Find out which two.
 | `SimpleMessaging/MessagePump.cs` | the `catch` block. All of it |
 
 1. **There are four queues and three of them are new.** What is each one *for*? One of them has
-   no consumer at all and that is deliberate — which, and why does that work?
+   no consumer at all and still gets its messages processed — which, and how does that work?
 2. **The consumer exposes five verbs:** `Acknowledge`, `Requeue`, `RejectForRetry`,
    `SendToInvalidMessageQueue`, `SendToDeadLetter`, and a `RetriesSoFar`. **The pump uses two of
    them.** Which three does it never call?
@@ -78,8 +86,9 @@ grep -c FAILED /tmp/probe-a.log
 
 - Attempts in about ten seconds: `____________`
 
-For reference, on a laptop against a local broker that number comes out around **fifteen
-thousand**. There is no delay, no limit, and no exit.
+For reference, on a laptop against a local broker that is **a few thousand a second** — somewhere
+between ten and twenty-five thousand in ten seconds, depending on the machine. The exact figure
+does not matter and yours will differ. There is no delay, no limit, and no exit.
 
 ▎ The pump never crashed, never lost the message, and logged every single attempt. **A monitor watching for errors would be perfectly happy.** This is the failure mode that gets found by the person who notices the disk filling up.
 
@@ -113,7 +122,10 @@ Click it. Click *Get Message*. Look at the headers.
 
 - Handler invocations: `____`   (the answer is not 3)
 - Total elapsed: `____`
-- `x-death` shows: `count` = `____`, `reason` = `____________`, `queue` = `____________`
+- `x-death` has **two** entries, one per hop of the cycle. Write down both:
+  - `count` = `____`, `reason` = `____________`, `queue` = `____________`
+  - `count` = `____`, `reason` = `____________`, `queue` = `____________`
+- Which of the two does the pump read, and why that one?                 `____________`
 
 ▎ `x-death` is RabbitMQ telling you a message's entire history for free, and almost nobody knows it is there. It is how the pump knows how many attempts it has had — the pump does not count anything itself.
 
@@ -160,7 +172,9 @@ wrong channel. **Put it on the invalid message queue and finish with the deliver
 may simply have been unlucky. **Retry it, with a delay, up to a limit. Past the limit, treat it
 as unrecoverable and dead-letter it.**
 
-- `RetriesSoFar(delivery)` tells you how many attempts this message has already had.
+- `RetriesSoFar(delivery)` tells you how many times this message has already been round the
+  retry loop — which is **one fewer** than the number of times the handler has run, because the
+  attempt you are in has not been counted yet. That off-by-one is the arithmetic below.
 - Set the limit to **3** so Probe B's arithmetic is checkable.
 - The retry itself is one call, and the five-second delay is already built into the topology.
 
@@ -214,7 +228,8 @@ There is a right answer for your system and it is not the same as ours.
   you rather have, and what does RabbitMQ make easy? (Look up how `x-death` count and a set of
   retry queues with different TTLs go together.)
 - **Start two receivers**, then send a poison message. Which one gets the retries? Does it
-  matter? Now make `FLAKY-1`'s counter per-process and think about what that did.
+  matter? Now notice that `FLAKY-1`'s counter is already **per-process** — each receiver has
+  its own `Catalogue` — and work out what that does to a flaky order with two of them running.
 
 ---
 

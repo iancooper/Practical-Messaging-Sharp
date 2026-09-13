@@ -15,9 +15,9 @@ That response is wrong in three separate ways and it is worth separating them, b
 is a different lesson:
 
 1. **It has no limit.** Nothing counts attempts, so nothing can ever stop. Probe A measured
-   this at roughly fifteen thousand attempts in ten seconds.
+   this at thousands of attempts a second.
 2. **It has no delay.** The message goes back and is picked up again immediately, which is why
-   the number is fifteen thousand rather than fifteen. A transient failure gets no time to
+   the number is tens of thousands rather than fifteen. A transient failure gets no time to
    become non-transient.
 3. **It does not distinguish the two failures.** A body that cannot be mapped and a handler that
    threw arrive at the same `catch` and leave by the same door — and one of them can never

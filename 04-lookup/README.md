@@ -30,7 +30,8 @@ You have effectively been doing the first one:
 
 **Start from `03-streams`.** Copy it, and add:
 
-1. **A `PriceChanged` event and a topic for it.** A SKU and a price, keyed so that events for
+1. **A `PriceChanged` event and a topic for it.** A SKU and a price, on the Kafka stream
+   gateway in `SimpleEventing/` that exercise 3 gave you, keyed so that events for
    one SKU stay in order. Think about whether it should carry the new price or just say that
    the price changed — §6.3 *Domain or Delta Event* and *Summary or Snapshot*, and the choice
    matters here more than it looks.
@@ -60,8 +61,13 @@ What it cannot do is answer the questions below, and those are the exercise.
 3. What is the worst case, and what makes it the worst case?             ______
 ```
 
-**Then measure it.** Put a timestamp on `PriceChanged`, note the time the order is priced, and
-print the difference. That number is your staleness, and it is the whole trade.
+**Then measure it.** Put a timestamp on `PriceChanged` when you publish it, and print the
+difference when your **consumer applies it to the local copy**. Publish-to-applied is your
+staleness, and it is the whole trade.
+
+Measure it to the moment the *order* is priced instead and you will get about a second — which
+is how long you waited before placing the order, not what the broker cost you. That is worth
+doing once, deliberately, to see the difference between the two numbers.
 
 ▎ *Behind by one broker hop, which is the trade.* You now know what one broker hop costs on your laptop. It is not what it costs in production, but you know how to find out.
 
@@ -85,7 +91,7 @@ Start everything from clean, with the price topic empty, and place an order.
 
 ```
 8. What does the handler see?                                           ______
-9. Is that the same as a SKU that does not exist?                        ______
+9. Is that the same as a SKU that does not exist?                       ______
 10. What should it do?                                                  ______
 ```
 

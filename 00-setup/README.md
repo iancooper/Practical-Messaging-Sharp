@@ -48,10 +48,11 @@ consumer and start another straight away, or run `reset.sh` and start one immedi
 consumer can join the group, be given no partitions at all, and sit in silence** while records pile
 up behind it.
 
-**That looks exactly like a lost event and it is not one.** `lag.sh` is what tells you apart: a
-partition with no CURRENT offset and no lag figure is a partition **nobody is holding**, which is a
-different problem from a partition that is behind. Wait for the assignment before you believe
-anything a quiet consumer is telling you.
+**That looks exactly like a lost event and it is not one.** `lag.sh` is what tells you apart, and
+the column that answers it is **CONSUMER-ID, not CURRENT**: a partition nobody holds prints
+`NOT ASSIGNED`, and a partition somebody holds but has never committed on prints `held, nothing
+committed yet`. Both show a dash for CURRENT, which is why the dash on its own tells you nothing.
+Wait for the assignment before you believe anything a quiet consumer is telling you.
 
 This is the stream-shaped version of the same lesson: **the broker's answer is about what the broker
 currently believes, not about what is true.**

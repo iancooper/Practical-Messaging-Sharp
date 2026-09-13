@@ -144,6 +144,14 @@ dotnet run --project Sender -- slow  # then kill the receiver during the lookup,
 6. Orders RabbitMQ still has a record of?                                ______
 ```
 
+**Then run it once more with the window, and read what it prints.** The ack has moved, so this
+time the message is already gone from RabbitMQ before the window opens:
+
+```
+DUAL_WRITE_WINDOW=15 dotnet run --project Receiver  # terminal 1
+dotnet run --project Sender                         # terminal 2, then look at ../00-setup/queues.sh
+```
+
 ▎ **The receiver's own message is a lie now, and nothing broke to make it one.** It still announces that the event is on the stream and RabbitMQ has not been acked. You moved one line, and a log statement that was true became false — which is worth remembering the next time you trust one.
 
 ▎ One ordering duplicates. The other loses. **There is no third place to put that line** — and you have just proved it by exhausting the options.
@@ -175,10 +183,14 @@ dotnet run --project Sender -- burst 6  # terminal 3
 ```
 
 - Partitions caught up: `____`   Partitions stuck: `____`
-- Good events the consumer managed to read: `____`
-- The stuck partition's CURRENT offset, checked twice a minute apart: `____` and `____`
+  (expect 2 and 1 — but the key decides which partition each order lands on, so your split may
+  differ, and if nothing good landed behind the poison you will see no loss at all)
+- Good events the consumer managed to read: `____` of 6
+- The stuck partition's **LOG-END**, checked twice a minute apart: `____` and `____`
+- …and its **CURRENT** offset:                                        `____`
+- What does `lag.sh` say in the STATE column for it?                   `____________`
 
-▎ **Two thirds of your stream is working perfectly.** One partition will never move again, and its only symptom is a number that stopped going up. There is no queue to look in, no `x-death` header to read, and no message you can click on.
+▎ **Two thirds of your stream is working perfectly.** One partition will never move again — and because the poison record is the *first* one on it, the group never commits there at all, so its symptom is not a number that stopped going up but **a dash where a number should be, under a LOG-END that keeps climbing**. There is no queue to look in, no `x-death` header to read, and no message you can click on.
 
 **Now specify the fix — do not write it.** Five minutes, out loud or on paper. Nominate the
 approach you would actually take, and say what it costs:
@@ -205,7 +217,18 @@ Everything so far has been a stream doing less than a queue. This is the other d
    On a stream, how?                                                     ______
 ```
 
-Change `Stream.ConsumerGroup` to any new name and run the stream consumer again.
+**Reset first.** Probe B left a record on the topic that nothing can read, and a brand new group
+starting from the beginning hits it immediately and sticks — which is true about streams, and is
+not the point this probe is making.
+
+```
+../00-setup/reset.sh
+dotnet run --project Receiver           # terminal 1, then send a few good orders and stop it
+dotnet run --project Sender -- burst 4  # terminal 2
+```
+
+Now change `Stream.ConsumerGroup` in `SimpleEventing/Stream.cs` to any new name and run the stream
+consumer again.
 
 - Events read: `____`   (the log was never modified)
 

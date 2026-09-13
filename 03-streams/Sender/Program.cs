@@ -9,6 +9,7 @@ using SimpleMessaging;
 //   dotnet run -- poison        a SKU that is not in the catalogue (queue-side failure)
 //   dotnet run -- unmappable    a body that is not a PlaceOrder (queue-side failure)
 //   dotnet run -- flaky         a lookup that fails twice then works
+//   dotnet run -- slow          an order whose lookup takes 30 seconds
 //   dotnet run -- bad-event     A RECORD THE STREAM CONSUMER CANNOT READ -- straight onto Kafka
 
 var command = args.Length > 0 ? args[0].ToLowerInvariant() : "good";

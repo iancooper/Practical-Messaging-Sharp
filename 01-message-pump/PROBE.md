@@ -22,6 +22,15 @@ An order goes on a queue, comes off it, and gets priced. There is nothing to mak
 Find *Queues* → `message-pump.Model.PlaceOrder`. Keep it open. Your agent cannot see it,
 cannot read it, and cannot predict what it will say. That is the point.
 
+If you would rather have the numbers in a terminal, `../00-setup/queues.sh` prints the same
+ready, unacked and consumers counts, and `../00-setup/reset.sh` empties the queues between
+probes. You will want the second one: these probes deliberately leave messages behind.
+
+> **The *Consumers* column will read 0 even while your receiver is running, and that is
+> correct.** This pump is a *Polling Consumer* — it asks the broker for one message at a time
+> with `basic.get` rather than subscribing — so there is no consumer registered for the broker
+> to count. Worth remembering when you get to exercise 3.
+
 ## The shape of every exercise today ##
 
 > **READ** it → **PREDICT** what will happen → **BREAK** it and watch → **FIX** it.
@@ -120,6 +129,10 @@ dotnet run --project Sender  # a perfectly good WIDGET-1
 
 ## PROBE C — kill it mid-handle — 5 minutes ##
 
+**Run `../00-setup/reset.sh` first.** Probe B left a good order on the queue on purpose, and
+if you leave it there the pump eats it before the slow one and your numbers below are somebody
+else's.
+
 This one needs the slow lookup. `GIZMO-SLOW` is in the catalogue, but the lookup takes 30
 seconds — a downstream service having a bad afternoon.
 
@@ -189,7 +202,7 @@ Re-run all three probes. The console should now say something different:
 
 | | before | after |
 |---|---|---|
-| **A** unmappable | pump dead, message gone | pump alive, and you can say where the message went |
+| **A** unmappable | pump dead, message gone | pump alive, and you *chose* to drop it rather than had it vanish |
 | **B** poison | pump dead, queue backing up | pump alive, good orders still flowing |
 | **C** kill mid-handle | `unacked=0` during the lookup; order lost | `unacked=1` during the lookup; order back on the queue after the kill |
 

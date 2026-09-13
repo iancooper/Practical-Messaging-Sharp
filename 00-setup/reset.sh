@@ -25,13 +25,27 @@ done
 container=practical-messaging-kafka
 docker inspect "$container" >/dev/null 2>&1 || container=kafka
 
+# Exercises 1 and 2 never touch Kafka, so most of the time there is nothing here to delete.
+# The CLI reports that on *stdout* with a Java stack trace, so redirecting stderr does not
+# hide it -- the output has to be read. A cleanup script whose only output is two exceptions
+# reads like a failure, and it is not one.
 echo "Kafka: deleting topic and consumer group..."
-docker exec "$container" /opt/kafka/bin/kafka-topics.sh \
-  --bootstrap-server localhost:9092 --delete --topic streams.OrderPlaced 2>/dev/null \
-  && echo "  deleted topic streams.OrderPlaced"
-docker exec "$container" /opt/kafka/bin/kafka-consumer-groups.sh \
-  --bootstrap-server localhost:9092 --delete --group practical-messaging-streams 2>/dev/null \
-  | sed 's/^/  /'
+
+out=$(docker exec "$container" /opt/kafka/bin/kafka-topics.sh \
+  --bootstrap-server localhost:9092 --delete --topic streams.OrderPlaced 2>&1)
+case "$out" in
+  "")                 echo "  deleted topic streams.OrderPlaced" ;;
+  *"does not exist"*) echo "  no topic streams.OrderPlaced -- nothing to delete" ;;
+  *)                  echo "$out" | sed 's/^/  /' ;;
+esac
+
+out=$(docker exec "$container" /opt/kafka/bin/kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 --delete --group practical-messaging-streams 2>&1)
+case "$out" in
+  *GroupIdNotFoundException*) echo "  no consumer group -- nothing to delete" ;;
+  *GroupNotEmptyException*)   echo "  consumer group still has members -- stop the stream consumer and run this again" ;;
+  *)                          echo "$out" | sed 's/^/  /' ;;
+esac
 
 echo
 echo "Clean. The queues and the topic are recreated the next time you start a consumer."

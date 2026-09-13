@@ -306,5 +306,9 @@ Kafka, who built it — and do you know what it does when it fails?
 
 `../04-lookup/` is exercise 4, and it is optional. The `Catalogue` the handler has been calling
 is a dictionary; it is standing in for reference data that belongs to somebody else. Exercise 4
-fills it from a stream, and asks the only question that matters about that: **how stale is it,
-and how would you know?**
+fills it from a stream, into a local copy that survives a restart, and asks the only question that
+matters about that: **how stale is it, and how would you know?**
+
+**It is a specification rather than a defect** — the one exercise in the set that asks you to
+write down what you want before anything is built. A worked answer is in the directory, and
+Probe D takes the dual write you have just met and puts it inside a loop you wrote yourself.

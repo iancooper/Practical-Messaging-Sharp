@@ -29,23 +29,33 @@ docker inspect "$container" >/dev/null 2>&1 || container=kafka
 # The CLI reports that on *stdout* with a Java stack trace, so redirecting stderr does not
 # hide it -- the output has to be read. A cleanup script whose only output is two exceptions
 # reads like a failure, and it is not one.
-echo "Kafka: deleting topic and consumer group..."
+#
+# streams.PriceChanged and its group belong to exercise 4, which most people will not have run.
+# Deleting a topic that was never created is not an error, so they are listed unconditionally.
+echo "Kafka: deleting topics and consumer groups..."
 
-out=$(docker exec "$container" /opt/kafka/bin/kafka-topics.sh \
-  --bootstrap-server localhost:9092 --delete --topic streams.OrderPlaced 2>&1)
-case "$out" in
-  "")                 echo "  deleted topic streams.OrderPlaced" ;;
-  *"does not exist"*) echo "  no topic streams.OrderPlaced -- nothing to delete" ;;
-  *)                  echo "$out" | sed 's/^/  /' ;;
-esac
+for topic in streams.OrderPlaced streams.PriceChanged; do
+  out=$(docker exec "$container" /opt/kafka/bin/kafka-topics.sh \
+    --bootstrap-server localhost:9092 --delete --topic "$topic" 2>&1)
+  case "$out" in
+    "")                 echo "  deleted topic $topic" ;;
+    *"does not exist"*) echo "  no topic $topic -- nothing to delete" ;;
+    *)                  echo "$out" | sed 's/^/  /' ;;
+  esac
+done
 
-out=$(docker exec "$container" /opt/kafka/bin/kafka-consumer-groups.sh \
-  --bootstrap-server localhost:9092 --delete --group practical-messaging-streams 2>&1)
-case "$out" in
-  *GroupIdNotFoundException*) echo "  no consumer group -- nothing to delete" ;;
-  *GroupNotEmptyException*)   echo "  consumer group still has members -- stop the stream consumer and run this again" ;;
-  *)                          echo "$out" | sed 's/^/  /' ;;
-esac
+for group in practical-messaging-streams practical-messaging-prices; do
+  out=$(docker exec "$container" /opt/kafka/bin/kafka-consumer-groups.sh \
+    --bootstrap-server localhost:9092 --delete --group "$group" 2>&1)
+  case "$out" in
+    *GroupIdNotFoundException*) echo "  no consumer group $group -- nothing to delete" ;;
+    *GroupNotEmptyException*)   echo "  consumer group $group still has members -- stop its consumer and run this again" ;;
+    *)                          echo "$out" | sed 's/^/  /' ;;
+  esac
+done
 
 echo
-echo "Clean. The queues and the topic are recreated the next time you start a consumer."
+echo "Clean. The queues and the topics are recreated the next time you start a consumer."
+echo
+echo "Exercise 4's local copy is a file on your disk, not broker state, so this script leaves"
+echo "it alone. Probe C wants it gone:  rm -f ../04-lookup/prices.db"

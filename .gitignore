@@ -292,3 +292,8 @@ __pycache__/
 # drive all five language repos. This entry is here so a copy pulled in for convenience
 # cannot be committed by accident.
 PROMPT.md
+
+# Exercise 4: the local copy of the catalogue. A working file, not source.
+prices.db
+prices.db-wal
+prices.db-shm

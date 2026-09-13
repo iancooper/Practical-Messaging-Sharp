@@ -8,6 +8,10 @@
 **Run it before the course, at home.** It checks your tools, pulls the two broker images, starts
 them, proves you can reach both, and builds all three exercises. It is safe to run repeatedly.
 
+It builds the optional take-home, `04-lookup`, as well — but **reports it as a NOTE rather than
+counting it as a failure**, because nobody's setup is broken by an exercise they are not going to
+start. The summary says which way it went either way; silence would be worse than a FAIL.
+
 | | |
 |---|---|
 | `docker-compose.yml` | RabbitMQ and Kafka, one container each |
@@ -15,12 +19,17 @@ them, proves you can reach both, and builds all three exercises. It is safe to r
 | `queues.sh` | RabbitMQ: ready, unacked and consumers per queue |
 | `peek.sh` | RabbitMQ: one message, its body and its headers — and puts it back |
 | `lag.sh` | Kafka: current offset, log end and lag per partition |
-| `reset.sh` | delete the exercises' queues, topic and consumer group. **Stop your consumers first** |
+| `reset.sh` | delete the exercises' queues, topics and consumer groups. **Stop your consumers first** |
 
 **`reset.sh` deletes those queues rather than emptying them**, which matters because the
 consumer is the only thing that declares them. Stop your receiver and your stream consumer,
 run it, and start them again — a consumer left polling a queue that has just been deleted is
 a confusing five minutes, and none of it is about messaging.
+
+**It does not delete exercise 4's local copy**, and that is deliberate rather than an oversight:
+`04-lookup/prices.db` is a file on your disk and not broker state, so "reset the brokers" does not
+and should not reach it. The script says so when it finishes. Probe C is the one that wants it
+gone, and it wants you to notice that you had to ask.
 
 ## Starting and stopping ##
 
@@ -74,9 +83,10 @@ RabbitMQ's `hostname:` is pinned because it keeps its message store in a directo
 the host. Without the pin, a restart lands the store somewhere else and the "persistent"
 messages you were about to demonstrate are gone.
 
-Kafka's topic is created with **three partitions** by the code rather than by the broker, so
+Kafka's topics are created with **three partitions** by the code rather than by the broker, so
 that the partition count is the exercise's decision and not a broker setting — exercise 3 needs
-more than one partition to make its point.
+more than one partition to make its point. There is one topic, `streams.OrderPlaced`, until the
+optional exercise 4 adds `streams.PriceChanged` beside it.
 
 ## If something is already on those ports ##
 

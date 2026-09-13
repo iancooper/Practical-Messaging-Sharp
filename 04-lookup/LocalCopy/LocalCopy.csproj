@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <!-- The only project in the solution that names SQLite, and the reason it is a project of
+         its own rather than a class in Model.
+
+         Same rule and same reason as SimpleMessaging's RabbitMQ.Client and SimpleEventing's
+         Confluent.Kafka: the thing that knows which technology this is gets a boundary drawn
+         round it, and PrivateAssets="compile" makes the boundary a compile error rather than a
+         code-review opinion. Receiver and PriceConsumer reference us and still cannot name a
+         SqliteConnection without asking for the package themselves. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" PrivateAssets="compile" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Model\Model.csproj" />
+  </ItemGroup>
+</Project>

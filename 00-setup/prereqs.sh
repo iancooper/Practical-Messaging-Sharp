@@ -14,7 +14,13 @@ cd "$(dirname "$0")"
 pass=0; fail=0
 ok()   { printf '  \033[32mOK\033[0m    %s\n' "$1"; pass=$((pass+1)); }
 bad()  { printf '  \033[31mFAIL\033[0m  %s\n' "$1"; fail=$((fail+1)); }
+# Reports, and counts as neither. Exercise 4 is optional and taken home, so a delegate who is
+# never going to start it should not be told their setup is broken because of it.
+note() { printf '  \033[33mNOTE\033[0m  %s\n' "$1"; }
 step() { printf '\n\033[1m%s\033[0m\n' "$1"; }
+
+# Set by step 6. Reported either way, because silence about it would be worse than a FAIL.
+ex4="not checked"
 
 step "1. Tools"
 if command -v docker >/dev/null 2>&1; then ok "docker $(docker --version | sed 's/Docker version //;s/,.*//')"
@@ -100,7 +106,14 @@ for d in ../01-message-pump ../02-failing-well ../03-streams; do
   else bad "$(basename "$d") does not build -- run 'dotnet build' in it to see why"; fi
 done
 
+# The take-home, reported but not counted -- see 'note' at the top of this file.
+if (cd ../04-lookup && dotnet build -v q --nologo >/dev/null 2>&1)
+then ok "04-lookup builds (optional, take home)"; ex4="builds"
+else note "04-lookup does not build -- it is optional, so this is not a failure"
+     ex4="DOES NOT BUILD -- run 'dotnet build' in 04-lookup to see why"; fi
+
 printf '\n\033[1m%d passed, %d failed\033[0m\n' "$pass" "$fail"
+printf 'Exercise 4 (optional, take home): %s\n' "$ex4"
 if [ "$fail" -eq 0 ]; then
   printf 'You are ready. Leave the containers up, or run "%s down" -- the volumes persist either way.\n' "$DC"
 else

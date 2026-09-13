@@ -6,7 +6,8 @@
 ```
 
 **Run it before the course, at home.** It checks your tools, pulls the two broker images, starts
-them, proves you can reach both, and builds all three exercises. It is safe to run repeatedly.
+them, proves you can reach both, checks that your clock and Docker's agree, and builds all three
+exercises. It is safe to run repeatedly.
 
 It builds the optional take-home, `04-lookup`, as well — but **reports it as a NOTE rather than
 counting it as a failure**, because nobody's setup is broken by an exercise they are not going to
@@ -41,10 +42,11 @@ docker compose down -v        # and now they don't
 
 RabbitMQ management console: <http://localhost:15672>, `guest` / `guest`.
 
-## Two things to know before you trust a number ##
+## Three things to know before you trust a number ##
 
-Both of these will, at some point, show you a number that makes a correct prediction look wrong.
-Neither is a quirk of the exercises.
+Each of these will, at some point, make a correct prediction look wrong. None of them is a quirk
+of the exercises — the first two are what every broker console does, and the third is what every
+laptop does.
 
 ### 1. RabbitMQ's console refreshes on a timer — about every five seconds ###
 
@@ -72,6 +74,34 @@ Wait for the assignment before you believe anything a quiet consumer is telling 
 This is the stream-shaped version of the same lesson: **the broker's answer is about what the broker
 currently believes, not about what is true.**
 
+### 3. Docker's clock drifts while your laptop sleeps, and Kafka will not say so ###
+
+Docker runs your containers inside a Linux VM, and **that VM keeps its own clock**. Suspend the
+machine and the VM's clock stops while the host's carries on, so a laptop that has been closed for
+an afternoon comes back with the two an hour or more apart.
+
+**Kafka rejects any record whose timestamp is more than an hour ahead of the broker.** Your code
+stamps records with the host's clock; the broker compares them against the VM's; and when the gap
+crosses sixty minutes every publish fails with:
+
+```
+Confluent.Kafka.ProduceException: Broker: Invalid timestamp
+```
+
+**Nothing in that message mentions a clock, a VM, or Docker**, and it arrives the first time you
+run exercise 3 rather than at setup — so it looks like your code. `prereqs.sh` checks for it now
+and tells you plainly. If you meet it anyway:
+
+```
+docker run --rm --privileged alpine hwclock -s     # resync the VM clock from the hardware
+```
+
+or restart Docker Desktop, which does the same thing more slowly. **This does not need the
+brokers stopped** and it affects every container on the machine, which is the point — they were
+all wrong.
+
+▎ It is worth noticing *why* the message is so unhelpful. The broker is not confused: it applied a rule correctly and reported the rule. It has no idea your clock is wrong, because from where it sits, **yours is the clock that is wrong** — and a distributed system cannot tell you whose time is real. That is the whole of Day 1 §4.1 in one error string.
+
 ## Why this compose file looks the way it does ##
 
 **Two containers, and that is on purpose.** Kafka runs in **KRaft** mode, so there is no
@@ -95,9 +125,9 @@ either broker locally, stop your containers for the day.** That really is the ch
 and here is why moving the exercises instead is worse than it looks:
 
 - **There is one copy of the gateway per exercise directory**, so the RabbitMQ address in
-  `SimpleMessaging/` exists three times — once in `01-message-pump`, once in `02-failing-well`,
-  once in `03-streams` — and changing the first one does not change the other two. The Kafka
-  address in `SimpleEventing/` exists once, in `03-streams`.
+  `SimpleMessaging/` exists four times — in `01-message-pump`, `02-failing-well`, `03-streams` and
+  the optional `04-lookup` — and changing the first one does not change the other three. The Kafka
+  address in `SimpleEventing/` exists in the last two.
 - **The RabbitMQ address in the code is a host name, not a port.** Nothing in
   `SimpleMessaging/` names 5672 at all; it is the AMQP default and the client supplies it. So
   moving RabbitMQ's AMQP port is not a string edit — it is a change to how the connection is

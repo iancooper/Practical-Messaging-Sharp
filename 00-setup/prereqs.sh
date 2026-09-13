@@ -19,7 +19,7 @@ bad()  { printf '  \033[31mFAIL\033[0m  %s\n' "$1"; fail=$((fail+1)); }
 note() { printf '  \033[33mNOTE\033[0m  %s\n' "$1"; }
 step() { printf '\n\033[1m%s\033[0m\n' "$1"; }
 
-# Set by step 6. Reported either way, because silence about it would be worse than a FAIL.
+# Set by step 7. Reported either way, because silence about it would be worse than a FAIL.
 ex4="not checked"
 
 step "1. Tools"
@@ -99,7 +99,31 @@ if docker exec practical-messaging-kafka /opt/kafka/bin/kafka-broker-api-version
 then ok "kafka answering on localhost:9092"
 else bad "kafka not answering on port 9092"; fi
 
-step "6. The code builds"
+# Docker's Linux VM keeps its own clock and it drifts while the machine is asleep. Kafka
+# rejects any record whose timestamp is more than an hour ahead of the broker, and the error
+# it gives you is "Broker: Invalid timestamp" -- which does not mention clocks, does not
+# mention Docker, and sends people looking at their code. Check it here instead.
+step "6. The clocks agree"
+vm=$(docker exec practical-messaging-kafka date -u +%s 2>/dev/null || echo "")
+if [ -z "$vm" ]; then
+  bad "cannot read the container's clock -- is Kafka running?"
+else
+  skew=$(( $(date -u +%s) - vm )); [ "$skew" -lt 0 ] && skew=$(( -skew ))
+  if   [ "$skew" -le 60 ];  then ok "host and container clocks agree (${skew}s apart)"
+  elif [ "$skew" -lt 1800 ]; then note "clocks are ${skew}s apart and drifting -- resync before the course (see below)"
+  else
+    bad "clocks are ${skew}s apart -- Kafka will reject every record you publish"
+  fi
+  if [ "$skew" -gt 60 ]; then
+    printf '\n  Docker'"'"'s VM clock drifts while the machine sleeps. At an hour out, Kafka\n'
+    printf '  refuses every record with "Broker: Invalid timestamp", which says nothing\n'
+    printf '  about clocks. Resync it:\n'
+    printf '      docker run --rm --privileged alpine hwclock -s\n'
+    printf '  or restart Docker Desktop, and run this again.\n'
+  fi
+fi
+
+step "7. The code builds"
 for d in ../01-message-pump ../02-failing-well ../03-streams; do
   if (cd "$d" && dotnet build -v q --nologo >/dev/null 2>&1)
   then ok "$(basename "$d") builds"

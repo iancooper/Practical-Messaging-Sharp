@@ -52,9 +52,16 @@ and the answer is "everything that imports the domain, plus every test of it".
 
 ## Probe A — how stale is it? ##
 
-**Thirty to a hundred and twenty milliseconds, on a laptop, with one hop of Kafka in between** —
-the first record after a start being the slow one, because that is a connection rather than a
-broker. The number itself is not the finding; the fact that it is *measurable at all* is.
+**Tens of milliseconds, on a laptop, with one hop of Kafka in between** — and in one of the five
+languages the same probe against the same broker reads over half a second, every time, because its
+client takes that long to connect and the seeder is a fresh process on every `set`. The first record
+after a start is the slow one, and that is a connection rather than a broker.
+
+▎ **Which is the finding, and it is not the number.** Two of those measurements differ by a factor
+of fifty with identical brokers, identical topics and identical code shape. If you had taken either
+one as *"what Kafka costs"* you would have been wrong, and nothing in the number itself would have
+told you. The fact that staleness is *measurable at all* is what you came for; knowing which part of
+what you measured belongs to the broker is what makes the measurement worth having.
 
 The important part is the second measurement, the one the probe asks you to make deliberately
 wrong. Time it to the moment the order is priced and you get about a second, because you waited a

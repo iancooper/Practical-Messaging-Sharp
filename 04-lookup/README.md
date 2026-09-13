@@ -162,9 +162,13 @@ Measure it to the moment the *order* is priced instead and you will get about a 
 is how long you waited before placing the order, not what the broker cost you. That is worth
 doing once, deliberately, to see the difference between the two numbers.
 
-**On the machine these were written on it is 30 to 120 ms**, and the first record after a start is
-always the slowest one — which is the connection, not the broker. Your number will differ and that
-does not matter; having measured one does.
+**On the machine these were written on it is 10 to 60 ms once the seeder is warm** — and the same
+probe, on the same broker, reads **over half a second** in one of the five languages. That spread is
+not the broker. It is the *connection*: `set` starts a new seeder every time, so every `set` pays to
+connect again, and how long that takes is a property of the client library rather than of Kafka.
+**The first record after any start is the slow one, and with a one-shot publisher every record is
+the first record.** Your number will differ and that does not matter; having measured one, and
+knowing which part of it is yours, does.
 
 **One reading will look absurd, and it is honest.** Replay a record that has been sitting in the
 log for ten minutes — which is exactly what Probe D makes you do — and publish-to-applied comes out

@@ -36,6 +36,23 @@ What it costs you, in the order the costs actually arrive:
 calls it. The handler takes `PlaceOrder` and returns. Delete the `PackageReference` from
 `Model.csproj` and let the compiler find anything you missed.
 
+**Three details, because this is the stage the next exercise is built on:**
+
+- **It is allowed to be thin.** Ours calls `PlaceOrder`'s own deserializer and nothing
+  else. If you decided the mapper *was* the deserializer and called it straight from the pump,
+  you got the right shape for exercise 1 and you will want the seam back in exercise 2 —
+  which is the next point.
+- **It must fail in its own way.** When the body will not deserialize, the mapper catches
+  whatever the serializer threw and raises `UnmappableMessageException` instead. That is not
+  ceremony: it is the only thing that lets the pump distinguish *I could not read this* from
+  *I read it and the work failed*, and exercise 2's entire fix is that distinction. A mapper
+  that lets `JsonException` escape has done the translation and not the classification.
+- **It lives on the domain side of the seam.** The contract goes in `SimpleMessaging/` with the
+  rest of the gateway's vocabulary; the mapper for this particular message goes in
+  `Model/`, next to the type it produces. The gateway is generic and must not name
+  `PlaceOrder`; the mapper names `PlaceOrder` and must not name a broker. That is
+  the same rule you just applied to the handler, one file along.
+
 ▎ The check is mechanical and it is the one from the deck: **if a handler's signature has a broker type in it, the mapper has not finished its job.**
 
 ### 2. The pump acknowledged before handling ###

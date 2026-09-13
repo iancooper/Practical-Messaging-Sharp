@@ -130,6 +130,14 @@ dotnet run --project Receiver
 so it happens *before* `_handler.Handle(...)` instead of after. Reset, and run the probe again — but
 **aim the kill somewhere else this time**, and the reason is worth a moment of its own.
 
+> **Move only that one line, and put it back when the probe is done.** The pump's failure
+> branches still finish with the delivery themselves, so with the acknowledgement hoisted above
+> them they are now acknowledging a delivery that has already been acknowledged. Nothing in
+> this probe goes down those branches, so you will not see it — but it is the first thing a
+> sharp reading of the file will find, and it is the honest reason this is a probe rather than
+> a refactor. **Every branch ends the delivery exactly once** was exercise 2's rule, and you
+> have just broken it to prove a point.
+
 `DUAL_WRITE_WINDOW` holds the process open *after* the event is on the stream. That is the gap
 that duplicates, and it is the one you have just been aiming at. With the ack moved, the gap that
 *loses* is the one **before** the Kafka write — so that is where the process has to die, and the
@@ -155,6 +163,10 @@ dotnet run --project Sender                         # terminal 2, then look at .
 ▎ **The receiver's own message is a lie now, and nothing broke to make it one.** It still announces that the event is on the stream and RabbitMQ has not been acked. You moved one line, and a log statement that was true became false — which is worth remembering the next time you trust one.
 
 ▎ One ordering duplicates. The other loses. **There is no third place to put that line** — and you have just proved it by exhausting the options.
+
+**Put the acknowledgement back after `_handler.Handle(...)` before you go on.** Probes B and C do
+not depend on it, but exercise 4 starts from this directory and you would be starting it from
+the wrong answer.
 
 ---
 
@@ -183,8 +195,24 @@ dotnet run --project Sender -- burst 6  # terminal 3
 ```
 
 - Partitions caught up: `____`   Partitions stuck: `____`
-  (expect 2 and 1 — but the key decides which partition each order lands on, so your split may
+  (expect 2 and 1 — but the key decides which partition each record lands on, so your split may
   differ, and if nothing good landed behind the poison you will see no loss at all)
+
+> **Where the key comes from, since it is not on the READ list above and it decides this
+> probe's answer.** The poison record is keyed with a fixed string by `Sender/`, so it
+> lands on the same partition every time you run this. Each good order's event is keyed by the
+> order id, and the publisher is wired up in `Receiver/` — so those scatter across all
+> three, and how many of them end up behind the poison is luck. **Neither of those two files is
+> in the gateway you have been reading**, which is itself worth noticing: partitioning is a
+> decision made at the edge, by whoever constructs the producer.
+
+> **If terminal 1 has gone quiet and `lag.sh` shows you nothing, read the STATE column before
+> you conclude anything.** A partition nobody holds and a partition held by a consumer stuck on
+> its very first record both print a dash for CURRENT, and they are opposite problems —
+> a rebalance that has not finished, against the stall this probe is about. **CONSUMER-ID is
+> the field that tells them apart**, which is why `lag.sh` prints a state rather than an offset.
+> Kafka holds a dead member's partitions for up to 45 seconds; see *Two things to know before
+> you trust a number* in `../00-setup/README.md`.
 - Good events the consumer managed to read: `____` of 6
 - The stuck partition's **LOG-END**, checked twice a minute apart: `____` and `____`
 - …and its **CURRENT** offset:                                        `____`

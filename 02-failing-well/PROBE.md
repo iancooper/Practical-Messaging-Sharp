@@ -31,8 +31,10 @@ Filter the Queues list on `failing-well`. Two of them should always be empty; wh
 not, that is the alert. Find out which two.
 
 `../00-setup/queues.sh` prints the same numbers in a terminal, and **`../00-setup/reset.sh`
-empties all four — run it between probes.** Probe A deliberately leaves a message on the work
-queue, and Probe B's arithmetic only works on an empty one.
+puts all four back to empty — run it between probes.** Probe A deliberately leaves a message on
+the work queue, and Probe B's arithmetic only works on an empty one. **Stop the receiver first:**
+reset deletes the queues rather than draining them, and the receiver is the only thing that
+declares them, so it wants starting afterwards and not before.
 
 > Remember from exercise 1 that the *Consumers* column reads 0 on every one of these, including
 > the work queue your receiver is draining: `basic.get` polls rather than subscribes. So the
@@ -120,6 +122,16 @@ dotnet run --project Sender -- poison  # NOPE-404: never in the catalogue, ever
 Count the handler invocations in the log, and then **go and find the message in the console**.
 Click it. Click *Get Message*. Look at the headers.
 
+If the console is not cooperating — and this is the one step in the exercise with a punchline
+you cannot get any other way — `../00-setup/peek.sh` does the same thing from a terminal:
+
+```
+../00-setup/peek.sh dead.failing-well.Model.PlaceOrder
+```
+
+It reads the message, prints its headers and puts it back, which is exactly what *Get Message*
+does.
+
 - Handler invocations: `____`   (the answer is not 3)
 - Total elapsed: `____`
 - `x-death` has **two** entries, one per hop of the cycle. Write down both:
@@ -202,6 +214,12 @@ still climbing, you built the slow version of the bug you came here to fix.
 
 And with all of that going on, `dotnet run --project Sender` must still place a good order
 immediately. **A queue that is failing should not be a queue that is slow.**
+
+**Give the console five seconds before you decide a row is wrong.** It refreshes its statistics
+on a timer, so a message that has just moved may still be counted where it was — and with a
+five-second retry TTL in play, that is long enough to make a correct fix look broken. `queues.sh`
+reads the same API and has the same delay. This is *Two things to know before you trust a number*
+in `../00-setup/README.md`, and it is the one that bites here.
 
 ---
 

@@ -14,7 +14,7 @@ Management console: <http://localhost:15672> (`guest` / `guest`) — keep it ope
 |---|---|
 | [`PROBE.md`](PROBE.md) | the exercise: read, predict, break, fix |
 | [`SOLUTION.md`](SOLUTION.md) | what the fix is, in prose. Read it after the predictions, not before |
-| `SimpleMessaging/` | the messaging gateway. Given to you, and correct |
+| `SimpleMessaging/` | the messaging gateway. Given to you, and correct — **except `MessagePump.cs`**, which lives here and is the exercise |
 | `Model/` | the domain — an order, a catalogue, and a handler |
 | `Sender/`, `Receiver/` | two console apps |
 

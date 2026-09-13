@@ -36,15 +36,40 @@ You have effectively been doing the first one:
    the price changed — §6.3 *Domain or Delta Event* and *Summary or Snapshot*, and the choice
    matters here more than it looks.
 2. **A seeder** that publishes prices onto that topic, and can change one on demand.
-3. **A consumer** that follows the topic and maintains a local copy.
+3. **A consumer** that follows the topic and maintains a local copy. **Run it in the receiver's
+   own process**, on a thread or task of its own, and let the local copy be an in-memory map
+   that both it and `Catalogue` can see. That is the simplest thing that works, it is
+   what most ECST consumers start as, and it keeps step 4 to a one-line change. A copy in a
+   database or a Redis is the honest production answer and a much bigger exercise — do that
+   second, if you do it at all, and notice what it does to *Where this goes next* at the bottom
+   of this page.
 4. **`Catalogue` reads the local copy** instead of its dictionary. `PriceOf` no longer throws
    `CatalogueUnavailableException`, because there is nothing left to be unavailable.
 
 The `PlaceOrderHandler` must not change. If it does, the lookup has leaked into your domain the
-way `BasicGetResult` did in exercise 1.
+way `BasicGetResult` did in exercise 1 — and it does not have to. The handler asks
+`Catalogue` for a price; `Catalogue` decides where prices come from. Put an
+in-process map behind it, kept current by the consumer in step 3, and the handler's line is the
+same line. **That is what the seam was for.** Move the copy out of process instead and you are
+making a network call while a message sits unacked — which is `GIZMO-SLOW` wearing a different
+hat, and the thing ECST was supposed to buy you out of.
 
-**Your agent can write all four of those.** The specification above is about as much as it needs.
-What it cannot do is answer the questions below, and those are the exercise.
+**Your agent can write all four of those**, and step 3 is the one it needs you to have decided
+first: *a local copy* is not a specification until somebody says where it lives. What it cannot
+do is answer the questions below, and those are the exercise.
+
+### Done is ###
+
+**About two hours to build, and an hour on the probes**, if you let the agent write the code and
+spend your own time on the questions. It is longer than any of the three you did in the room;
+that is what take-home buys. You are done when:
+
+- a price change published by the seeder shows up in an order placed a moment later
+- you have **a number** for publish-to-applied staleness, from Probe A, that you measured rather
+  than estimated
+- you can say what your system does when the price consumer is dead (Probe B) and when it has
+  never run (Probe C), and **which of those two your code currently confuses**
+- `PlaceOrderHandler` is untouched
 
 ---
 
@@ -105,6 +130,13 @@ Start everything from clean, with the price topic empty, and place an order.
 a lookup lives in a flow-based design. If you have done this, you will have already met the
 answer.
 
-**Exercise 3's Probe A is also waiting for you here.** The price consumer writes to a local
-store. The order handler reads it and writes an order. Those are two writes, and you have met
-that problem before.
+**Exercise 3's Probe A is waiting for you here too, and it is closer than it looks.** The
+obvious candidate — the price consumer writes its copy, the order handler writes an order — is
+not it: those are two processes and two stores, and nobody expects one transaction across them.
+
+The dual write is **inside the price consumer**. It applies a record to its local copy, and it
+commits its offset, and those are two writes with no transaction between them. Commit first and
+die, and the copy is missing a price it will never be offered again. Apply first and die, and
+you apply it twice — which is harmless here, because a price is a snapshot and last-writer-wins,
+and that is not an accident: it is §6.3's *Summary or Snapshot* choice paying for itself one
+exercise later. **Choose a delta event in step 1 and you have to solve this properly.**

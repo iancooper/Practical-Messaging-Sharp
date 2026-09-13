@@ -19,12 +19,17 @@ dotnet run --project Sender    # terminal 2: sends one order
 An order goes on a queue, comes off it, and gets priced. There is nothing to make work.
 
 **And a third window, which is the one that matters: <http://localhost:15672>, `guest` / `guest`.**
-Find *Queues* → `message-pump.Model.PlaceOrder`. Keep it open. Your agent cannot see it,
-cannot read it, and cannot predict what it will say. That is the point.
+Find *Queues* → `message-pump.Model.PlaceOrder`. Keep it open. Your agent cannot see it and cannot read it —
+it is a running system, not a file — though it can often *guess* what it will say, because
+this pump is a short file and the mistake is three lines from the top. **Let it. The
+question is whether you can, and whether you will believe the broker when it disagrees with
+you.** That second half is the one that matters at three in the morning.
 
 If you would rather have the numbers in a terminal, `../00-setup/queues.sh` prints the same
-ready, unacked and consumers counts, and `../00-setup/reset.sh` empties the queues between
-probes. You will want the second one: these probes deliberately leave messages behind.
+ready, unacked and consumers counts, and `../00-setup/reset.sh` puts the queues back to empty
+between probes. You will want the second one: these probes deliberately leave messages behind.
+**Stop the receiver before you run it** — it deletes the queues rather than draining them, and
+the receiver is the only thing that declares them.
 
 > **The *Consumers* column will read 0 even while your receiver is running, and that is
 > correct.** This pump is a *Polling Consumer* — it asks the broker for one message at a time
@@ -39,10 +44,11 @@ probes. You will want the second one: these probes deliberately leave messages b
 because a prediction you did not write down becomes "yes, that's what I expected" the moment
 you see the answer, and then you have learned nothing. There are blanks below. Use them.
 
-**Your agent is welcome here and it will not help you with the middle two steps.** It can
-read the code faster than you and it can write the fix faster than you. It cannot tell you
-what the queue depth will be in ten seconds, because that is a fact about a running system,
-not about the code.
+**Your agent is welcome here.** It can read the code faster than you and write the fix faster
+than you, and on a file this small it will predict most of the probes correctly. What it
+cannot do is look — the numbers below come off a running broker, and every one of them is a
+fact about a system rather than about a file. **Predict anyway, in your own handwriting,
+before you ask it anything.** A prediction you outsourced is not a prediction you hold.
 
 ---
 
@@ -177,8 +183,20 @@ before you decide your prediction was wrong.
 Three changes, and the order matters because the second one depends on the first.
 
 **1. Put the Translate stage back where it belongs.** The pump has a `Get` and a `Handle` and
-nothing in between. Add a **Message Mapper** — something that turns a body into a `PlaceOrder`
-— and call it from the pump, between getting the message and dispatching it.
+nothing in between. Add a **Message Mapper** — something that turns a body into a
+`PlaceOrder` — and call it from the pump, between getting the message and dispatching it.
+
+  - **Yes, it will mostly call `PlaceOrder`'s own deserializer, and that is fine.** The
+    mapper is not there to do clever work; it is there to *be a stage*, so that the pump has
+    somewhere to put the question *did this body make sense?* — which is a different question
+    from *did the work succeed?*
+  - **So make it fail in its own way.** When the body will not deserialize, the mapper should
+    raise something you can tell apart from anything the handler raises. Exercise 2's whole
+    fix rests on that distinction, and this is where it is created.
+  - **Where it goes:** the contract belongs in `SimpleMessaging/` with the rest of the seam;
+    the mapper for *this* message belongs in `Model/` next to the type it maps to. The
+    gateway must not know about `PlaceOrder`, and the mapper must not know about the
+    broker — which is the same rule you are about to apply to the handler.
 
 **2. Change the handler's signature so it cannot know about messaging.**
 `Handle(BasicGetResult)` becomes `Handle(PlaceOrder)`. When you are done:
@@ -189,6 +207,10 @@ nothing in between. Add a **Message Mapper** — something that turns a body int
 
 **3. Move the acknowledgement.** The pump acks a message it has not finished with. Decide where
 the ack belongs, and what should happen instead when the stage before it throws.
+
+**And when all three are done, delete the banner at the top of `SimpleMessaging/MessagePump.cs`.** It says the
+file is the exercise and tells you not to copy it. Once you have fixed it, neither is true —
+and a warning that has stopped being true is worse than no warning.
 
   - For a body that will not map — is there any number of retries that helps?
   - For a handler that threw — is that the same answer?

@@ -66,16 +66,42 @@ partition of three stops permanently.
 
 **The important observation is not that it is stuck. It is that everything else is fine.** Two
 partitions caught up, good events flowing, no errors in any dashboard that counts errors. The
-only symptom is one partition's offset not increasing — which looks identical to a partition
-under load until you check it twice.
+only symptom is an offset that is not moving — and because the poison record is the *first* one
+on its partition, the group never commits there at all, so what you actually see is **a dash
+where a number should be, under a LOG-END that keeps climbing**.
+
+That dash is worth one more sentence, because it is ambiguous and the ambiguity is the trap.
+CURRENT is a dash when nobody holds the partition *and* when somebody holds it and has never
+committed on it — a rebalance in progress, against the stall you came to see. **CONSUMER-ID is
+the only field that separates them**, which is why `lag.sh` prints a state rather than leaving
+you to read the offsets. A partition under load looks like this too, for a while. You tell them
+apart by checking twice.
 
 Compare exercise 2: RabbitMQ noticed the rejection, moved the message, counted the attempts in
 a header, and gave you a queue with a name that told you what kind of failure it was. **You
 wrote about twenty lines of policy and the broker did all the work.**
 
 Here there is no ack to withhold, because an offset is a bookmark and not a lock. Which removes,
-in one go: requeue, requeue-with-delay, reject, dead letter, and redelivery count. The three
-things you can actually do:
+in one go: requeue, requeue-with-delay, reject, dead letter, and redelivery count.
+
+**And it removes the thing blank 8 was asking for.** *How do I get it out of the way so the next
+record can be processed?* — there is no command in this repo, and there is no switch on the
+consumer, because getting a record out of the way means moving a bookmark past it and the
+bookmark is yours. Either the consumer decides to skip it, in code, which is the first row of
+the table below; or an operator moves the group by hand:
+
+```
+docker exec practical-messaging-kafka /opt/kafka/bin/kafka-consumer-groups.sh \
+  --bootstrap-server localhost:9092 --group practical-messaging-streams \
+  --topic streams.OrderPlaced:1 --reset-offsets --shift-by 1 --execute
+```
+
+(`:1` is the partition, and it is whichever one `lag.sh` showed you stuck — not necessarily 1.)
+
+**That is not a fix and it should not feel like one.** It needs the group stopped, it needs
+somebody to know which partition, and the record is not saved anywhere — it is stepped over and
+left in the log. Compare it with clicking a message in the dead letter queue and reading its
+`x-death` header. The three things you can actually do in code:
 
 | | what you lose |
 |---|---|
